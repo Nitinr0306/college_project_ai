@@ -1,6 +1,4 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
@@ -13,6 +11,7 @@ import { ProtectedRoute } from "./lib/protected-route";
 import ChatbotButton from "./components/chatbot/chatbot-button";
 import ChatbotModal from "./components/chatbot/chatbot-modal";
 import { useState } from "react";
+import { AuthProvider } from "./hooks/use-auth";
 
 function Router() {
   return (
@@ -36,12 +35,12 @@ function App() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <AuthProvider>
       <Router />
       <Toaster />
       <ChatbotButton toggleChatbot={toggleChatbot} />
       <ChatbotModal isOpen={isChatbotOpen} toggleChatbot={toggleChatbot} />
-    </QueryClientProvider>
+    </AuthProvider>
   );
 }
 

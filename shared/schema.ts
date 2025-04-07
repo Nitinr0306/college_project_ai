@@ -107,6 +107,12 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type InsertBadge = z.infer<typeof insertBadgeSchema>;
+export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
+export type InsertOptimization = z.infer<typeof insertOptimizationSchema>;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
 export type User = typeof users.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type Badge = typeof badges.$inferSelect;

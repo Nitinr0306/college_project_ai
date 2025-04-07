@@ -6,8 +6,20 @@ import { optimizations, type Optimization, type InsertOptimization } from "@shar
 import { chatMessages, type ChatMessage, type InsertChatMessage } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
+import { Pool } from "@neondatabase/serverless";
+
+// Add session store type
+declare module "express-session" {
+  interface SessionStore {
+    [key: string]: any;
+  }
+}
 
 const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   // User operations
@@ -166,6 +178,8 @@ export class MemStorage implements IStorage {
       ...insertUser, 
       id, 
       role: "user", 
+      name: insertUser.name || null,
+      profilePicture: insertUser.profilePicture || null,
       createdAt: now, 
       updatedAt: now
     };
@@ -205,6 +219,9 @@ export class MemStorage implements IStorage {
     const project: Project = {
       ...insertProject,
       id,
+      description: insertProject.description || null,
+      hostingProvider: insertProject.hostingProvider || null,
+      monthlyTraffic: insertProject.monthlyTraffic || null,
       carbonFootprint: 0,
       sustainabilityScore: 0,
       status: "new",
@@ -303,6 +320,7 @@ export class MemStorage implements IStorage {
     const optimization: Optimization = {
       ...insertOptimization,
       id,
+      recommendations: insertOptimization.recommendations || null,
       createdAt: now
     };
     this.optimizations.set(id, optimization);
@@ -329,4 +347,252 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.SessionStore;
+  
+  constructor() {
+    // Create a PostgreSQL session store
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      tableName: "session",
+      createTableIfMissing: true
+    });
+    
+    // Initialize badges when needed
+    this.initializeBadgesIfNeeded();
+  }
+  
+  private async initializeBadgesIfNeeded() {
+    const existingBadges = await this.getAllBadges();
+    
+    if (existingBadges.length === 0) {
+      const defaultBadges = [
+        {
+          name: "Green Host Pioneer",
+          description: "Switched to a green hosting provider",
+          icon: "eco",
+          category: "hosting",
+          points: 100
+        },
+        {
+          name: "Speed Optimizer",
+          description: "Improved website loading speed by 50%",
+          icon: "speed",
+          category: "performance",
+          points: 75
+        },
+        {
+          name: "Compression Master",
+          description: "Reduced asset sizes by at least 40%",
+          icon: "compress",
+          category: "optimization",
+          points: 50
+        },
+        {
+          name: "Image Optimizer",
+          description: "Optimized all images on your website",
+          icon: "image",
+          category: "optimization",
+          points: 50
+        },
+        {
+          name: "Clean Code Hero", 
+          description: "Removed unnecessary code and dependencies",
+          icon: "code",
+          category: "code",
+          points: 75
+        },
+        {
+          name: "Carbon Reducer",
+          description: "Reduced carbon footprint by at least 30%",
+          icon: "public",
+          category: "carbon",
+          points: 100
+        }
+      ];
+      
+      for (const badge of defaultBadges) {
+        await this.createBadge(badge);
+      }
+    }
+  }
+  
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      name: insertUser.name || null,
+      profilePicture: insertUser.profilePicture || null,
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return user;
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+  
+  // Project operations
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
+  }
+  
+  async getProjectsByUserId(userId: number): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.userId, userId));
+  }
+  
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const [project] = await db.insert(projects).values({
+      ...insertProject,
+      description: insertProject.description || null,
+      hostingProvider: insertProject.hostingProvider || null,
+      monthlyTraffic: insertProject.monthlyTraffic || null,
+      carbonFootprint: 0,
+      sustainabilityScore: 0,
+      status: "new",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return project;
+  }
+  
+  async updateProject(id: number, updates: Partial<Project>): Promise<Project | undefined> {
+    const [project] = await db.update(projects)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
+  }
+  
+  async deleteProject(id: number): Promise<boolean> {
+    const result = await db.delete(projects).where(eq(projects.id, id));
+    return !!result;
+  }
+  
+  // Badge operations
+  async getBadge(id: number): Promise<Badge | undefined> {
+    const [badge] = await db.select().from(badges).where(eq(badges.id, id));
+    return badge;
+  }
+  
+  async getAllBadges(): Promise<Badge[]> {
+    return await db.select().from(badges);
+  }
+  
+  async createBadge(insertBadge: InsertBadge): Promise<Badge> {
+    const [badge] = await db.insert(badges).values({
+      ...insertBadge,
+      createdAt: new Date()
+    }).returning();
+    return badge;
+  }
+  
+  // UserBadge operations
+  async getUserBadges(userId: number): Promise<Badge[]> {
+    const userBadgesResult = await db.select()
+      .from(userBadges)
+      .where(eq(userBadges.userId, userId));
+    
+    const badgeIds = userBadgesResult.map(ub => ub.badgeId);
+    
+    if (badgeIds.length === 0) {
+      return [];
+    }
+    
+    return await Promise.all(
+      badgeIds.map(async (badgeId) => {
+        const badge = await this.getBadge(badgeId);
+        return badge!;
+      })
+    );
+  }
+  
+  async assignBadgeToUser(insertUserBadge: InsertUserBadge): Promise<UserBadge> {
+    // Check if user already has this badge
+    const [existingUserBadge] = await db.select()
+      .from(userBadges)
+      .where(
+        and(
+          eq(userBadges.userId, insertUserBadge.userId),
+          eq(userBadges.badgeId, insertUserBadge.badgeId)
+        )
+      );
+    
+    if (existingUserBadge) {
+      return existingUserBadge;
+    }
+    
+    const [userBadge] = await db.insert(userBadges).values({
+      ...insertUserBadge,
+      achievedAt: new Date()
+    }).returning();
+    
+    return userBadge;
+  }
+  
+  // Optimization operations
+  async getOptimizationsByProjectId(projectId: number): Promise<Optimization[]> {
+    return await db.select()
+      .from(optimizations)
+      .where(eq(optimizations.projectId, projectId));
+  }
+  
+  async createOptimization(insertOptimization: InsertOptimization): Promise<Optimization> {
+    const [optimization] = await db.insert(optimizations).values({
+      ...insertOptimization,
+      recommendations: insertOptimization.recommendations || null,
+      createdAt: new Date()
+    }).returning();
+    
+    return optimization;
+  }
+  
+  // Chat operations
+  async getChatMessagesByUserId(userId: number): Promise<ChatMessage[]> {
+    return await db.select()
+      .from(chatMessages)
+      .where(eq(chatMessages.userId, userId))
+      .orderBy(chatMessages.createdAt);
+  }
+  
+  async createChatMessage(insertChatMessage: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db.insert(chatMessages).values({
+      ...insertChatMessage,
+      createdAt: new Date()
+    }).returning();
+    
+    return message;
+  }
+}
+
+// Switch from MemStorage to DatabaseStorage
+export const storage = new DatabaseStorage();
