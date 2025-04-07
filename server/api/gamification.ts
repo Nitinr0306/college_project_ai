@@ -1,204 +1,131 @@
 import { Router } from "express";
 import { storage } from "../storage";
+import { insertUserBadgeSchema, Project, User } from "@shared/schema";
 
 export const gamificationRouter = Router();
 
-// Helper function to check if a user should earn a badge
-async function checkAndAssignBadges(userId: number, projectId: number) {
-  try {
-    // Get user's projects
-    const projects = await storage.getProjectsByUserId(userId);
-    if (projects.length === 0) return [];
-    
-    // Get all badges
-    const allBadges = await storage.getAllBadges();
-    // Get user's existing badges
-    const userBadges = await storage.getUserBadges(userId);
-    const userBadgeIds = userBadges.map(badge => badge.id);
-    
-    // Get the project that was just analyzed/updated
-    const currentProject = projects.find(p => p.id === projectId);
-    if (!currentProject) return [];
-    
-    const earnedBadges = [];
-
-    // Check for Green Host Pioneer badge
-    const greenHostBadge = allBadges.find(b => b.name === "Green Host Pioneer");
-    if (greenHostBadge && !userBadgeIds.includes(greenHostBadge.id)) {
-      if (currentProject.hostingProvider === "Green Hosting Co.") {
-        await storage.assignBadgeToUser({
-          userId,
-          badgeId: greenHostBadge.id
-        });
-        earnedBadges.push(greenHostBadge);
-      }
-    }
-    
-    // Check for Carbon Reducer badge
-    const carbonReducerBadge = allBadges.find(b => b.name === "Carbon Reducer");
-    if (carbonReducerBadge && !userBadgeIds.includes(carbonReducerBadge.id)) {
-      // Check if any project has a sustainability score >= 80
-      if (currentProject.sustainabilityScore >= 80) {
-        await storage.assignBadgeToUser({
-          userId,
-          badgeId: carbonReducerBadge.id
-        });
-        earnedBadges.push(carbonReducerBadge);
-      }
-    }
-    
-    // Get project optimizations
-    const optimizations = await storage.getOptimizationsByProjectId(projectId);
-    if (optimizations.length > 0) {
-      // Find the latest optimization
-      const latestOptimization = optimizations.sort((a, b) => 
-        b.createdAt.getTime() - a.createdAt.getTime()
-      )[0];
-      
-      // Check for Speed Optimizer badge
-      const speedBadge = allBadges.find(b => b.name === "Speed Optimizer");
-      if (speedBadge && !userBadgeIds.includes(speedBadge.id)) {
-        if (latestOptimization.recommendations && 
-            latestOptimization.score >= 75) {
-          await storage.assignBadgeToUser({
-            userId,
-            badgeId: speedBadge.id
-          });
-          earnedBadges.push(speedBadge);
-        }
-      }
-      
-      // Check for other badges based on specific optimizations
-      // This would typically involve analyzing the optimization recommendations
-      // and assigning badges based on specific improvements
-    }
-    
-    return earnedBadges;
-  } catch (error) {
-    console.error("Error checking badges:", error);
-    return [];
-  }
-}
-
-// Get user badges (protected route)
+// Get all badges
 gamificationRouter.get("/badges", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
-  }
-  
-  try {
-    const badges = await storage.getUserBadges(req.user.id);
-    res.json(badges);
-  } catch (error) {
-    console.error("Badges retrieval error:", error);
-    res.status(500).json({ message: "Failed to retrieve badges" });
-  }
-});
-
-// Get all available badges (protected route)
-gamificationRouter.get("/badges/all", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
-  }
-  
   try {
     const badges = await storage.getAllBadges();
     res.json(badges);
   } catch (error) {
-    console.error("Badges retrieval error:", error);
+    console.error("Error retrieving badges:", error);
     res.status(500).json({ message: "Failed to retrieve badges" });
   }
 });
 
-// Check for badges after project analysis (protected route)
-gamificationRouter.post("/check-badges", async (req, res) => {
+// Get user badges
+gamificationRouter.get("/user-badges", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  
+
   try {
-    const { projectId } = req.body;
-    
-    if (!projectId) {
-      return res.status(400).json({ message: "Project ID is required" });
-    }
-    
-    const project = await storage.getProject(projectId);
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
-    }
-    
-    // Ensure user owns the project
-    if (project.userId !== req.user.id) {
-      return res.status(403).json({ message: "You don't have access to this project" });
-    }
-    
-    // Check for new badges
-    const newBadges = await checkAndAssignBadges(req.user.id, projectId);
-    
-    // Get all user badges
-    const allUserBadges = await storage.getUserBadges(req.user.id);
-    
-    res.json({
-      badges: allUserBadges,
-      newBadges: newBadges.length > 0 ? newBadges : [],
-      hasNewBadges: newBadges.length > 0
-    });
+    const badges = await storage.getUserBadges(req.user.id);
+    res.json(badges);
   } catch (error) {
-    console.error("Badge check error:", error);
-    res.status(500).json({ message: "Failed to check for badges" });
+    console.error("Error retrieving user badges:", error);
+    res.status(500).json({ message: "Failed to retrieve user badges" });
   }
 });
 
-// Get leaderboard (protected route)
-gamificationRouter.get("/leaderboard", async (req, res) => {
+// Get user stats (badges, points, etc.)
+gamificationRouter.get("/user-stats", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  
+
   try {
-    // In a real implementation, this would query the database to get users
-    // with the most badges or highest total points
-    // For now, we'll create a mock leaderboard
+    // Get user badges
+    const badges = await storage.getUserBadges(req.user.id);
     
-    // Get all users (for a real implementation, limit this and add pagination)
-    const allUsers = Array.from((storage as any).users.values());
+    // Get user projects
+    const projects = await storage.getProjectsByUserId(req.user.id);
     
-    const leaderboard = await Promise.all(
-      allUsers.map(async (user) => {
-        const userBadges = await storage.getUserBadges(user.id);
-        
-        // Calculate total points from badges
-        let totalPoints = 0;
-        for (const badge of userBadges) {
-          totalPoints += badge.points || 0;
-        }
-        
-        // Get user's projects
-        const projects = await storage.getProjectsByUserId(user.id);
-        
-        // Calculate average sustainability score
-        const totalSustainabilityScore = projects.reduce(
-          (sum, project) => sum + (project.sustainabilityScore || 0), 0
-        );
-        const avgSustainabilityScore = projects.length > 0 
-          ? Math.round(totalSustainabilityScore / projects.length) 
-          : 0;
-        
-        return {
-          userId: user.id,
-          username: user.username,
-          name: user.name,
-          badgeCount: userBadges.length,
-          points: totalPoints,
-          projectCount: projects.length,
-          sustainabilityScore: avgSustainabilityScore
-        };
-      })
-    );
+    // Calculate total points (sum of badge points)
+    const totalPoints = badges.reduce((sum, badge) => sum + badge.points, 0);
+    
+    // Calculate sustainability score (average of project scores)
+    let sustainabilityScore = 0;
+    if (projects.length > 0) {
+      const totalScore = projects.reduce((sum, project) => {
+        return sum + (project.sustainabilityScore || 0);
+      }, 0);
+      sustainabilityScore = totalScore / projects.length;
+    }
+    
+    // Calculate total carbon saved
+    const totalCarbonSaved = projects.reduce((sum, project) => {
+      // If project has a carbon footprint reduction recorded
+      return sum + (project.carbonSaved || 0);
+    }, 0);
+    
+    // Get the most recent projects (up to 5)
+    const recentProjects = projects
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+    
+    res.json({
+      userId: req.user.id,
+      badgeCount: badges.length,
+      projectCount: projects.length,
+      totalCarbonSaved,
+      totalPoints,
+      sustainabilityScore,
+      badges,
+      recentProjects
+    });
+  } catch (error) {
+    console.error("Error retrieving user stats:", error);
+    res.status(500).json({ message: "Failed to retrieve user statistics" });
+  }
+});
+
+// Get leaderboard
+gamificationRouter.get("/leaderboard", async (req, res) => {
+  try {
+    // This is a simplified implementation
+    // In a real app, you'd need a more efficient query that joins tables
+    
+    // Get all users
+    const users = await storage.getAllUsers();
+    
+    // For each user, get their stats
+    const leaderboardPromises = users.map(async (user: User) => {
+      // Get user badges
+      const badges = await storage.getUserBadges(user.id);
+      
+      // Get user projects
+      const projects = await storage.getProjectsByUserId(user.id);
+      
+      // Calculate total points
+      const totalPoints = badges.reduce((sum, badge) => sum + badge.points, 0);
+      
+      // Calculate average sustainability score
+      let sustainabilityScore = 0;
+      if (projects.length > 0) {
+        const totalScore = projects.reduce((sum, project) => {
+          return sum + (project.sustainabilityScore || 0);
+        }, 0);
+        sustainabilityScore = totalScore / projects.length;
+      }
+      
+      return {
+        userId: user.id,
+        username: user.username,
+        name: user.name,
+        badgeCount: badges.length,
+        points: totalPoints,
+        projectCount: projects.length,
+        sustainabilityScore
+      };
+    });
+    
+    const leaderboard = await Promise.all(leaderboardPromises);
     
     // Sort by points (descending)
-    leaderboard.sort((a, b) => b.points - a.points);
+    leaderboard.sort((a: any, b: any) => b.points - a.points);
     
     res.json(leaderboard);
   } catch (error) {
@@ -207,56 +134,136 @@ gamificationRouter.get("/leaderboard", async (req, res) => {
   }
 });
 
-// Get user stats (protected route)
-gamificationRouter.get("/stats", async (req, res) => {
+// Check and assign badges for a project
+gamificationRouter.post("/check-badges", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  const { projectId } = req.body;
+  
+  if (!projectId) {
+    return res.status(400).json({ message: "Project ID is required" });
   }
   
   try {
-    const userId = req.user.id;
+    // Get the project
+    const project = await storage.getProject(projectId);
     
-    // Get user's badges
-    const badges = await storage.getUserBadges(userId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
     
-    // Get user's projects
-    const projects = await storage.getProjectsByUserId(userId);
+    // Check if the project belongs to the current user
+    if (project.userId !== req.user.id) {
+      return res.status(403).json({ message: "You don't have permission to access this project" });
+    }
     
-    // Calculate total carbon saved
-    const totalCarbonSaved = projects.reduce((sum, project) => {
-      // Estimate carbon saved based on sustainability score
-      // Higher score = more carbon saved
-      const carbonSaved = project.sustainabilityScore
-        ? (project.sustainabilityScore / 100) * 20 // 20kg is max possible savings per project
-        : 0;
-      return sum + carbonSaved;
-    }, 0);
-    
-    // Calculate total points from badges
-    const totalPoints = badges.reduce((sum, badge) => sum + (badge.points || 0), 0);
-    
-    // Calculate average sustainability score
-    const totalSustainabilityScore = projects.reduce(
-      (sum, project) => sum + (project.sustainabilityScore || 0), 0
-    );
-    const avgSustainabilityScore = projects.length > 0 
-      ? Math.round(totalSustainabilityScore / projects.length) 
-      : 0;
+    // Check and assign badges
+    const newBadges = await checkAndAssignBadges(req.user.id, project);
     
     res.json({
-      userId,
-      badgeCount: badges.length,
-      projectCount: projects.length,
-      totalCarbonSaved: Math.round(totalCarbonSaved * 10) / 10, // Round to 1 decimal place
-      totalPoints,
-      sustainabilityScore: avgSustainabilityScore,
-      badges,
-      recentProjects: projects
-        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-        .slice(0, 3) // Get 3 most recent projects
+      success: true,
+      newBadges,
+      message: newBadges.length > 0 
+        ? `You've earned ${newBadges.length} new badges!` 
+        : "No new badges earned"
     });
   } catch (error) {
-    console.error("Stats retrieval error:", error);
-    res.status(500).json({ message: "Failed to retrieve user stats" });
+    console.error("Error checking badges:", error);
+    res.status(500).json({ message: "Failed to check for badges" });
   }
 });
+
+// Helper function to check and assign badges
+async function checkAndAssignBadges(userId: number, project: Project) {
+  // Get existing user badges
+  const existingBadges = await storage.getUserBadges(userId);
+  const existingBadgeIds = existingBadges.map(badge => badge.id);
+  
+  // Get all available badges
+  const allBadges = await storage.getAllBadges();
+  
+  // Get user projects
+  const userProjects = await storage.getProjectsByUserId(userId);
+  
+  const newBadges = [];
+  
+  // Check each badge criteria
+  for (const badge of allBadges) {
+    // Skip if user already has this badge
+    if (existingBadgeIds.includes(badge.id)) {
+      continue;
+    }
+    
+    let shouldAward = false;
+    
+    // Check badge criteria based on category
+    switch (badge.name.toLowerCase()) {
+      case "carbon-reducer":
+        // Award if project has good carbon score
+        shouldAward = project.sustainabilityScore >= 70;
+        break;
+        
+      case "sustainability-pioneer":
+        // First project analyzed
+        shouldAward = userProjects.length === 1;
+        break;
+        
+      case "eco-friendly-developer":
+        // At least 3 projects analyzed
+        shouldAward = userProjects.length >= 3;
+        break;
+        
+      case "green-host-pioneer":
+        // Project using green hosting
+        shouldAward = project.hostingProvider?.toLowerCase().includes("green");
+        break;
+        
+      case "speed-optimizer":
+        // High server efficiency
+        shouldAward = project.serverEfficiency >= 85;
+        break;
+        
+      case "asset-optimization-expert":
+        // High asset optimization
+        shouldAward = project.assetOptimization >= 80;
+        break;
+        
+      case "carbon-conscious":
+        // 5 or more projects analyzed
+        shouldAward = userProjects.length >= 5;
+        break;
+        
+      case "sustainability-star":
+        // Average sustainability score across all projects >= 75
+        const avgScore = userProjects.reduce((sum, p) => 
+          sum + (p.sustainabilityScore || 0), 0) / userProjects.length;
+        shouldAward = avgScore >= 75 && userProjects.length >= 3;
+        break;
+        
+      default:
+        // No specific criteria, don't award
+        shouldAward = false;
+    }
+    
+    if (shouldAward) {
+      // Create user badge
+      const userBadge = {
+        userId,
+        badgeId: badge.id,
+      };
+      
+      // Validate and assign badge
+      try {
+        const validatedUserBadge = insertUserBadgeSchema.parse(userBadge);
+        await storage.assignBadgeToUser(validatedUserBadge);
+        newBadges.push(badge);
+      } catch (error) {
+        console.error(`Failed to assign badge ${badge.id} to user ${userId}:`, error);
+      }
+    }
+  }
+  
+  return newBadges;
+}

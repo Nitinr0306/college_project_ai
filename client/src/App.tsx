@@ -1,5 +1,4 @@
 import { Switch, Route } from "wouter";
-import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
@@ -37,7 +36,6 @@ function App() {
   return (
     <AuthProvider>
       <Router />
-      <Toaster />
       <ChatbotButton toggleChatbot={toggleChatbot} />
       <ChatbotModal isOpen={isChatbotOpen} toggleChatbot={toggleChatbot} />
     </AuthProvider>

@@ -13,26 +13,24 @@ type CarbonEstimatorResultsProps = {
 };
 
 export default function CarbonEstimatorResults({ result, onReset }: CarbonEstimatorResultsProps) {
-  const { checkBadgesMutation } = useGamification();
+  const { checkBadges, isCheckingBadges } = useGamification();
   const [showBadgeEarned, setShowBadgeEarned] = useState(false);
   const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
   
   // Check if the user earned any badges for this analysis
   useEffect(() => {
-    async function checkBadges() {
+    async function checkUserBadges() {
       try {
-        const badgeResult = await checkBadgesMutation.mutateAsync(result.projectId);
-        if (badgeResult.hasNewBadges) {
-          setShowBadgeEarned(true);
-          setEarnedBadges(badgeResult.newBadges);
-        }
+        checkBadges({ projectId: result.projectId });
+        // The toast notification will be shown automatically by the hook
+        // when badges are earned
       } catch (error) {
         console.error("Failed to check badges:", error);
       }
     }
     
-    checkBadges();
-  }, [result.projectId, checkBadgesMutation]);
+    checkUserBadges();
+  }, [result.projectId, checkBadges]);
   
   // Get color for score
   const getScoreColor = (score: number) => {

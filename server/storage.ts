@@ -28,6 +28,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   
   // Project operations
   getProject(id: number): Promise<Project | undefined>;
@@ -201,6 +202,10 @@ export class MemStorage implements IStorage {
     this.users.set(id, updatedUser);
     return updatedUser;
   }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
   
   // Project operations
   async getProject(id: number): Promise<Project | undefined> {
@@ -224,6 +229,9 @@ export class MemStorage implements IStorage {
       monthlyTraffic: insertProject.monthlyTraffic || null,
       carbonFootprint: 0,
       sustainabilityScore: 0,
+      carbonSaved: 0,
+      serverEfficiency: 0,
+      assetOptimization: 0,
       status: "new",
       createdAt: now,
       updatedAt: now
@@ -301,6 +309,8 @@ export class MemStorage implements IStorage {
     const userBadge: UserBadge = {
       ...insertUserBadge,
       id,
+      earnedAt: insertUserBadge.earnedAt || now,
+      projectId: insertUserBadge.projectId || null,
       achievedAt: now
     };
     this.userBadges.set(id, userBadge);
@@ -320,6 +330,12 @@ export class MemStorage implements IStorage {
     const optimization: Optimization = {
       ...insertOptimization,
       id,
+      title: insertOptimization.title || "Optimization",
+      description: insertOptimization.description || "Optimization recommendation",
+      category: insertOptimization.category || "general",
+      status: insertOptimization.status || "pending",
+      impact: insertOptimization.impact || "medium",
+      score: insertOptimization.score || 0,
       recommendations: insertOptimization.recommendations || null,
       createdAt: now
     };
@@ -456,6 +472,10 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
   
   // Project operations
   async getProject(id: number): Promise<Project | undefined> {
@@ -475,6 +495,9 @@ export class DatabaseStorage implements IStorage {
       monthlyTraffic: insertProject.monthlyTraffic || null,
       carbonFootprint: 0,
       sustainabilityScore: 0,
+      carbonSaved: 0,
+      serverEfficiency: 0,
+      assetOptimization: 0,
       status: "new",
       createdAt: new Date(),
       updatedAt: new Date()
@@ -553,6 +576,8 @@ export class DatabaseStorage implements IStorage {
     
     const [userBadge] = await db.insert(userBadges).values({
       ...insertUserBadge,
+      earnedAt: insertUserBadge.earnedAt || new Date(),
+      projectId: insertUserBadge.projectId || null,
       achievedAt: new Date()
     }).returning();
     
@@ -569,6 +594,12 @@ export class DatabaseStorage implements IStorage {
   async createOptimization(insertOptimization: InsertOptimization): Promise<Optimization> {
     const [optimization] = await db.insert(optimizations).values({
       ...insertOptimization,
+      title: insertOptimization.title || "Optimization",
+      description: insertOptimization.description || "Optimization recommendation",
+      category: insertOptimization.category || "general",
+      status: insertOptimization.status || "pending",
+      impact: insertOptimization.impact || "medium",
+      score: insertOptimization.score || 0,
       recommendations: insertOptimization.recommendations || null,
       createdAt: new Date()
     }).returning();

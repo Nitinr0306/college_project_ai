@@ -13,10 +13,9 @@ import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger }
 // Trend visualization component
 export default function DashboardCharts() {
   const [chartTab, setChartTab] = useState("monthly");
-  const { useUserStats } = useGamification();
+  const { userStats: stats, isLoadingStats } = useGamification();
   const { useProjects } = useCarbonAnalysis();
   
-  const { data: stats, isLoading: isStatsLoading } = useUserStats();
   const { data: projects, isLoading: isProjectsLoading } = useProjects();
 
   // Generate monthly trend data
@@ -154,7 +153,7 @@ export default function DashboardCharts() {
     return null;
   };
 
-  if (isStatsLoading || isProjectsLoading) {
+  if (isLoadingStats || isProjectsLoading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card>
@@ -340,12 +339,11 @@ export default function DashboardCharts() {
                   <div className="relative">
                     <Progress 
                       value={category.score} 
-                      className="h-2.5 rounded-full" 
-                      indicatorClassName={
-                        category.score >= 80 ? "bg-green-500" : 
-                        category.score >= 60 ? "bg-amber-500" : 
-                        "bg-red-500"
-                      }
+                      className={`h-2.5 rounded-full ${
+                        category.score >= 80 ? "bg-green-500/20" : 
+                        category.score >= 60 ? "bg-amber-500/20" : 
+                        "bg-red-500/20"
+                      }`}
                     />
                   </div>
                   <p className="text-xs text-neutral-500 mt-1">{category.description}</p>

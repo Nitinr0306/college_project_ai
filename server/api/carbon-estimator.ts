@@ -1,214 +1,189 @@
 import { Router } from "express";
 import { storage } from "../storage";
+import { analyzeWebsiteSustainability } from "../utils/openai";
+import { z } from "zod";
 
 export const carbonEstimatorRouter = Router();
 
-// Map of hosting providers to their carbon efficiency scores (0-100)
-const HOSTING_PROVIDERS_SCORES = {
-  "Green Hosting Co.": 95,
-  "AWS": 70,
-  "Google Cloud": 75,
-  "Azure": 65,
-  "Digital Ocean": 60,
-  "Linode": 55,
-  "GoDaddy": 40,
-  "Other": 50
-};
-
-// Map of traffic levels to estimated carbon impact multipliers
-const TRAFFIC_MULTIPLIERS = {
-  "1-1,000 visitors": 1,
-  "1,001-10,000 visitors": 2.5,
-  "10,001-100,000 visitors": 5,
-  "100,001+ visitors": 10
-};
-
-// Calculate carbon footprint
-function calculateCarbonFootprint(hostingProvider: string, traffic: string, pageSize: number): number {
-  const hostingScore = HOSTING_PROVIDERS_SCORES[hostingProvider] || HOSTING_PROVIDERS_SCORES.Other;
-  const trafficMultiplier = TRAFFIC_MULTIPLIERS[traffic] || TRAFFIC_MULTIPLIERS["1-1,000 visitors"];
-  
-  // Basic formula: higher hosting score = lower carbon footprint
-  // We calculate a base footprint from page size, then adjust by hosting and traffic
-  const baseCarbonPerMB = 0.2; // kg CO2 per MB for an average webpage
-  const hostingFactor = (100 - hostingScore) / 100; // Better hosting = lower factor
-  
-  return Math.round(pageSize * baseCarbonPerMB * hostingFactor * trafficMultiplier * 10) / 10;
-}
-
-// Calculate asset optimization scores and generate recommendations
-function generateOptimizationScores(url: string, pageSize: number): { 
-  serverEfficiency: number;
-  assetOptimization: number;
-  greenHosting: number;
-  recommendations: string[];
-} {
-  // These would typically be calculated based on actual website analysis
-  // For this implementation, we'll generate reasonable scores based on the URL and page size
-  
-  const urlHash = Array.from(url).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  
-  // Generate somewhat random but deterministic scores based on URL
-  const serverEfficiency = Math.min(100, Math.max(30, 60 + (urlHash % 40)));
-  const assetOptimization = Math.min(100, Math.max(20, 50 + ((urlHash * 2) % 50)));
-  const greenHosting = Math.min(100, Math.max(40, 70 + ((urlHash * 3) % 30)));
-  
-  // Generate appropriate recommendations based on scores
-  const recommendations: string[] = [];
-  
-  if (serverEfficiency < 70) {
-    recommendations.push("Enable HTTP/2 to reduce connection overhead");
-    recommendations.push("Implement proper browser caching for static resources");
-  }
-  
-  if (assetOptimization < 60) {
-    recommendations.push("Compress and optimize images using WebP format");
-    recommendations.push("Minify and bundle CSS and JavaScript files");
-    recommendations.push("Remove unused CSS and JavaScript code");
-  }
-  
-  if (greenHosting < 80) {
-    recommendations.push("Consider switching to a green hosting provider that uses renewable energy");
-    recommendations.push("Choose a data center location closer to your primary audience");
-  }
-  
-  return {
-    serverEfficiency,
-    assetOptimization,
-    greenHosting,
-    recommendations
-  };
-}
-
-// Analyze website (protected route)
-carbonEstimatorRouter.post("/analyze", async (req, res) => {
+// Analyze website and estimate carbon footprint
+carbonEstimatorRouter.post("/api/carbon-estimator/analyze", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ error: "You must be logged in to use this feature" });
   }
-  
+
+  // Validate request body
+  const schema = z.object({
+    url: z.string().url(),
+    hostingProvider: z.string(),
+    monthlyTraffic: z.string(),
+    pageSize: z.number().optional(),
+    name: z.string().optional(),
+    description: z.string().optional(),
+  });
+
   try {
-    const { url, hostingProvider, monthlyTraffic, pageSize = 2.5 } = req.body;
+    const validatedData = schema.parse(req.body);
     
-    if (!url || !hostingProvider || !monthlyTraffic) {
-      return res.status(400).json({ message: "URL, hosting provider, and monthly traffic are required" });
-    }
-    
-    // Calculate carbon footprint and generate recommendations
-    const carbonFootprint = calculateCarbonFootprint(hostingProvider, monthlyTraffic, pageSize);
-    const {
-      serverEfficiency,
-      assetOptimization,
-      greenHosting,
-      recommendations
-    } = generateOptimizationScores(url, pageSize);
-    
-    // Calculate overall sustainability score (0-100)
-    const sustainabilityScore = Math.round(
-      (serverEfficiency * 0.3) + (assetOptimization * 0.4) + (greenHosting * 0.3)
-    );
-    
-    // Check for existing project or create a new one
-    let project = (await storage.getProjectsByUserId(req.user.id))
-      .find(p => p.url.toLowerCase() === url.toLowerCase());
-    
-    if (project) {
-      // Update existing project
-      project = await storage.updateProject(project.id, {
-        hostingProvider,
-        monthlyTraffic,
-        carbonFootprint,
-        sustainabilityScore,
-        status: "analyzed",
-        updatedAt: new Date()
-      });
-    } else {
-      // Create new project
-      project = await storage.createProject({
+    try {
+      // Use OpenAI to analyze the website
+      const analysis = await analyzeWebsiteSustainability(
+        validatedData.url,
+        validatedData.hostingProvider,
+        validatedData.monthlyTraffic
+      );
+      
+      // Create a project record with the analysis results
+      const project = await storage.createProject({
         userId: req.user.id,
-        name: new URL(url).hostname,
-        url,
-        hostingProvider,
-        monthlyTraffic,
-        description: `Website at ${url}`,
-        carbonFootprint,
-        sustainabilityScore,
-        status: "analyzed"
+        name: validatedData.name || `Analysis of ${validatedData.url}`,
+        url: validatedData.url,
+        hostingProvider: validatedData.hostingProvider,
+        monthlyTraffic: validatedData.monthlyTraffic,
+        description: validatedData.description || "",
+        carbonFootprint: analysis.carbonFootprint || 0,
+        sustainabilityScore: analysis.sustainabilityScore || 0,
+        status: "completed",
       });
+      
+      // Store optimization recommendations
+      if (analysis.recommendations && Array.isArray(analysis.recommendations)) {
+        for (const recommendation of analysis.recommendations) {
+          await storage.createOptimization({
+            projectId: project.id,
+            title: typeof recommendation === 'string' ? recommendation : 'Optimization suggestion',
+            description: typeof recommendation === 'string' ? recommendation : JSON.stringify(recommendation),
+            impact: "medium",
+            status: "pending",
+          });
+        }
+      }
+      
+      // Check for badges
+      await checkForBadges(req.user.id, project.id, analysis);
+      
+      // Return the results
+      res.json({
+        projectId: project.id,
+        carbonFootprint: analysis.carbonFootprint || 0,
+        sustainabilityScore: analysis.sustainabilityScore || 0,
+        serverEfficiency: analysis.serverEfficiency || 0,
+        assetOptimization: analysis.assetOptimization || 0,
+        greenHosting: analysis.greenHosting || 0,
+        recommendations: analysis.recommendations || [],
+      });
+    } catch (error) {
+      console.error("Error analyzing website:", error);
+      res.status(500).json({ error: "Failed to analyze website" });
     }
-    
-    // Store optimizations
-    const optimization = await storage.createOptimization({
-      projectId: project.id,
-      category: "analysis",
-      score: sustainabilityScore,
-      recommendations
-    });
-    
-    // Return analysis results
-    res.json({
-      projectId: project.id,
-      carbonFootprint,
-      sustainabilityScore,
-      serverEfficiency,
-      assetOptimization,
-      greenHosting,
-      recommendations
-    });
   } catch (error) {
-    console.error("Carbon estimation error:", error);
-    res.status(500).json({ message: "Failed to analyze website" });
+    console.error("Invalid request data:", error);
+    res.status(400).json({ error: "Invalid request data" });
   }
 });
 
-// Get project analysis (protected route)
-carbonEstimatorRouter.get("/project/:id", async (req, res) => {
+// Get projects for the current user
+carbonEstimatorRouter.get("/api/carbon-estimator/projects", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ error: "You must be logged in to view your projects" });
   }
-  
-  try {
-    const projectId = parseInt(req.params.id);
-    if (isNaN(projectId)) {
-      return res.status(400).json({ message: "Invalid project ID" });
-    }
-    
-    const project = await storage.getProject(projectId);
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
-    }
-    
-    // Ensure user owns the project
-    if (project.userId !== req.user.id) {
-      return res.status(403).json({ message: "You don't have access to this project" });
-    }
-    
-    const optimizations = await storage.getOptimizationsByProjectId(projectId);
-    const latestOptimization = optimizations.sort((a, b) => 
-      b.createdAt.getTime() - a.createdAt.getTime()
-    )[0];
-    
-    res.json({
-      project,
-      optimizations: optimizations.length > 0 ? optimizations : null,
-      latestOptimization: latestOptimization || null
-    });
-  } catch (error) {
-    console.error("Project retrieval error:", error);
-    res.status(500).json({ message: "Failed to retrieve project analysis" });
-  }
-});
 
-// Get user projects (protected route)
-carbonEstimatorRouter.get("/projects", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Authentication required" });
-  }
-  
   try {
     const projects = await storage.getProjectsByUserId(req.user.id);
     res.json(projects);
   } catch (error) {
-    console.error("Projects retrieval error:", error);
-    res.status(500).json({ message: "Failed to retrieve projects" });
+    console.error("Error fetching projects:", error);
+    res.status(500).json({ error: "Failed to fetch projects" });
   }
 });
+
+// Get a specific project with optimizations
+carbonEstimatorRouter.get("/api/carbon-estimator/projects/:id", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "You must be logged in to view project details" });
+  }
+
+  try {
+    const projectId = parseInt(req.params.id);
+    if (isNaN(projectId)) {
+      return res.status(400).json({ error: "Invalid project ID" });
+    }
+
+    const project = await storage.getProject(projectId);
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    if (project.userId !== req.user.id) {
+      return res.status(403).json({ error: "You do not have permission to view this project" });
+    }
+
+    const optimizations = await storage.getOptimizationsByProjectId(projectId);
+    
+    res.json({
+      project,
+      optimizations,
+    });
+  } catch (error) {
+    console.error("Error fetching project details:", error);
+    res.status(500).json({ error: "Failed to fetch project details" });
+  }
+});
+
+// Helper function to check and assign badges based on analysis results
+async function checkForBadges(userId: number, projectId: number, analysis: any) {
+  try {
+    // List of badge criteria to check
+    const badgeCriteria = [
+      {
+        name: "Carbon Conscious",
+        condition: analysis.carbonFootprint < 1.0,
+        description: "Achieved a carbon footprint less than 1.0g CO2e per page view",
+      },
+      {
+        name: "Sustainability Star",
+        condition: analysis.sustainabilityScore >= 80,
+        description: "Achieved a sustainability score of 80 or higher",
+      },
+      {
+        name: "Green Hosting Champion",
+        condition: analysis.greenHosting >= 90,
+        description: "Uses eco-friendly hosting with a score of 90 or higher",
+      },
+      {
+        name: "Asset Optimization Expert",
+        condition: analysis.assetOptimization >= 85,
+        description: "Achieved an asset optimization score of 85 or higher",
+      },
+    ];
+    
+    // Check each badge criterion
+    for (const criterion of badgeCriteria) {
+      if (criterion.condition) {
+        // Check if badge exists
+        const allBadges = await storage.getAllBadges();
+        let badge = allBadges.find(b => b.name === criterion.name);
+        
+        // Create badge if it doesn't exist
+        if (!badge) {
+          badge = await storage.createBadge({
+            name: criterion.name,
+            description: criterion.description,
+            icon: criterion.name.toLowerCase().replace(/\s+/g, "-"),
+            category: "sustainability",
+            points: 100,
+          });
+        }
+        
+        // Assign badge to user
+        await storage.assignBadgeToUser({
+          userId,
+          badgeId: badge.id,
+          earnedAt: new Date(),
+          projectId,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error checking for badges:", error);
+  }
+}

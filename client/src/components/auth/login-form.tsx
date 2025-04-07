@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -26,6 +27,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }) {
   const { loginMutation } = useAuth();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -37,19 +39,28 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    await loginMutation.mutateAsync({
-      username: data.username,
-      password: data.password,
-    });
+    try {
+      await loginMutation.mutateAsync({
+        username: data.username,
+        password: data.password,
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
-    // This would typically redirect to Google OAuth
-    // For now, we'll just show a toast message
+    
+    // This is just a demo implementation, as we don't have Google OAuth set up
+    toast({
+      title: "Google Sign-In",
+      description: "Google Sign-In is not configured in this demo. Please use normal login.",
+    });
+    
     setTimeout(() => {
       setIsGoogleLoading(false);
-    }, 2000);
+    }, 1500);
   };
 
   return (
@@ -107,7 +118,7 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
             control={form.control}
             name="rememberMe"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -115,7 +126,7 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>Remember me</FormLabel>
+                  <FormLabel className="cursor-pointer">Remember me</FormLabel>
                 </div>
               </FormItem>
             )}
@@ -123,7 +134,7 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
 
           <Button 
             type="submit" 
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3"
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? "Signing in..." : "Sign in"}
@@ -175,6 +186,7 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
       <div className="mt-6 text-center text-sm text-neutral-600">
         Don't have an account?{" "}
         <button
+          type="button"
           onClick={onToggleForm}
           className="text-primary-600 font-medium hover:text-primary-700"
         >

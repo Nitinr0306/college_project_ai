@@ -1,97 +1,92 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Redirect } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
-import { Card } from "@/components/ui/card";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
-import { Recycle } from "lucide-react";
+import { Leaf, LineChart, BarChart3 } from "lucide-react";
 
 export default function AuthPage() {
-  const { user } = useAuth();
   const [isLoginForm, setIsLoginForm] = useState(true);
+  const { user, isLoading } = useAuth();
 
-  // Toggle between login and register forms
   const toggleForm = () => {
-    setIsLoginForm(!isLoginForm);
+    setIsLoginForm((prev) => !prev);
   };
 
-  // Redirect to dashboard if user is already logged in
-  if (user) {
+  // Redirect to home if user is already logged in
+  if (!isLoading && user) {
     return <Redirect to="/dashboard" />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow py-20 bg-gradient-to-b from-green-50 to-teal-50">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col lg:flex-row gap-12 items-center lg:items-stretch">
-            {/* Auth form */}
-            <div className="lg:w-1/2">
-              <Card className="max-w-md mx-auto p-8 shadow-xl">
-                {isLoginForm ? (
-                  <LoginForm onToggleForm={toggleForm} />
-                ) : (
-                  <RegisterForm onToggleForm={toggleForm} />
-                )}
-              </Card>
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row">
+        <div className="w-full lg:w-1/2 p-8 lg:p-12">
+          <div className="mb-8">
+            <div className="h-12 w-12 bg-primary-100 flex items-center justify-center rounded-xl mb-4">
+              <Leaf className="h-6 w-6 text-primary-600" />
             </div>
+            <h1 className="text-2xl font-bold text-primary-600">GreenWeb</h1>
+          </div>
 
-            {/* Hero section */}
-            <div className="lg:w-1/2">
-              <div className="max-w-lg mx-auto">
-                <div className="flex items-center mb-6">
-                  <Recycle className="text-primary-600 mr-2" size={32} />
-                  <h2 className="text-3xl font-bold text-neutral-800">GreenWeb</h2>
+          {isLoginForm ? (
+            <LoginForm onToggleForm={toggleForm} />
+          ) : (
+            <RegisterForm onToggleForm={toggleForm} />
+          )}
+        </div>
+
+        <div className="hidden lg:block w-1/2 bg-primary-700 p-12 relative">
+          <div className="absolute inset-0 bg-[url('/patterns.svg')] opacity-10"></div>
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold text-white mb-6">
+              Build sustainable websites that make a difference
+            </h2>
+
+            <p className="text-primary-100 mb-8">
+              GreenWeb helps you create eco-friendly websites by analyzing your carbon footprint, providing optimization recommendations, and tracking your sustainability progress over time.
+            </p>
+
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="bg-primary-800 p-2 rounded-lg mt-1">
+                  <BarChart3 className="h-5 w-5 text-primary-200" />
                 </div>
-                <h1 className="text-4xl font-bold text-neutral-800 mb-6">
-                  Build Sustainable Websites that Make a Difference
-                </h1>
-                <p className="text-xl text-neutral-600 mb-8">
-                  Join our platform and use AI-powered tools to reduce your website's carbon footprint while improving performance.
-                </p>
-
-                <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-                  <h3 className="text-xl font-semibold text-neutral-800 mb-4">Why Choose GreenWeb?</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start">
-                      <div className="bg-primary-100 rounded-full p-1 mr-3 mt-1">
-                        <Recycle className="text-primary-600 h-4 w-4" />
-                      </div>
-                      <span className="text-neutral-700">Reduce your website's carbon footprint</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="bg-primary-100 rounded-full p-1 mr-3 mt-1">
-                        <Recycle className="text-primary-600 h-4 w-4" />
-                      </div>
-                      <span className="text-neutral-700">Earn badges for sustainable achievements</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="bg-primary-100 rounded-full p-1 mr-3 mt-1">
-                        <Recycle className="text-primary-600 h-4 w-4" />
-                      </div>
-                      <span className="text-neutral-700">Get AI-powered optimization suggestions</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="bg-primary-100 rounded-full p-1 mr-3 mt-1">
-                        <Recycle className="text-primary-600 h-4 w-4" />
-                      </div>
-                      <span className="text-neutral-700">Track your sustainability progress over time</span>
-                    </li>
-                  </ul>
+                <div>
+                  <h3 className="text-white font-medium text-lg">Carbon Footprint Estimation</h3>
+                  <p className="text-primary-200 text-sm">
+                    Analyze your website's carbon impact with our AI-powered estimator
+                  </p>
                 </div>
+              </div>
 
-                <div className="text-neutral-600">
-                  By joining GreenWeb, you're contributing to a more sustainable web ecosystem and helping fight climate change.
+              <div className="flex items-start space-x-4">
+                <div className="bg-primary-800 p-2 rounded-lg mt-1">
+                  <LineChart className="h-5 w-5 text-primary-200" />
+                </div>
+                <div>
+                  <h3 className="text-white font-medium text-lg">Performance Tracking</h3>
+                  <p className="text-primary-200 text-sm">
+                    Monitor your progress and see how your optimizations improve sustainability
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="bg-primary-800 p-2 rounded-lg mt-1">
+                  <Leaf className="h-5 w-5 text-primary-200" />
+                </div>
+                <div>
+                  <h3 className="text-white font-medium text-lg">Sustainability Badges</h3>
+                  <p className="text-primary-200 text-sm">
+                    Earn badges and showcase your commitment to sustainable web development
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

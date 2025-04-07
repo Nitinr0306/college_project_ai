@@ -24,6 +24,9 @@ export const projects = pgTable("projects", {
   monthlyTraffic: text("monthly_traffic"),
   carbonFootprint: integer("carbon_footprint"),
   sustainabilityScore: integer("sustainability_score"),
+  carbonSaved: integer("carbon_saved").default(0),
+  serverEfficiency: integer("server_efficiency"),
+  assetOptimization: integer("asset_optimization"),
   status: text("status").default("new").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -43,14 +46,20 @@ export const userBadges = pgTable("user_badges", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   badgeId: integer("badge_id").notNull().references(() => badges.id),
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+  projectId: integer("project_id").references(() => projects.id),
   achievedAt: timestamp("achieved_at").defaultNow().notNull(),
 });
 
 export const optimizations = pgTable("optimizations", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id),
-  category: text("category").notNull(),
-  score: integer("score").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull().default("general"),
+  impact: text("impact").notNull().default("medium"),
+  status: text("status").notNull().default("pending"),
+  score: integer("score").notNull().default(0),
   recommendations: json("recommendations"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -78,6 +87,12 @@ export const insertProjectSchema = createInsertSchema(projects).pick({
   description: true,
   hostingProvider: true,
   monthlyTraffic: true,
+  carbonFootprint: true,
+  sustainabilityScore: true,
+  carbonSaved: true,
+  serverEfficiency: true,
+  assetOptimization: true,
+  status: true,
 });
 
 export const insertBadgeSchema = createInsertSchema(badges).pick({
@@ -91,11 +106,17 @@ export const insertBadgeSchema = createInsertSchema(badges).pick({
 export const insertUserBadgeSchema = createInsertSchema(userBadges).pick({
   userId: true,
   badgeId: true,
+  earnedAt: true,
+  projectId: true,
 });
 
 export const insertOptimizationSchema = createInsertSchema(optimizations).pick({
   projectId: true,
+  title: true,
+  description: true,
   category: true,
+  impact: true,
+  status: true,
   score: true,
   recommendations: true,
 });

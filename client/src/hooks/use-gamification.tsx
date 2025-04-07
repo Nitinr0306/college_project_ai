@@ -1,6 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 
 export type Badge = {
   id: number;
@@ -36,97 +36,75 @@ export type UserStats = {
 export function useGamification() {
   const { toast } = useToast();
 
+  // Get user statistics
+  const {
+    data: userStats,
+    isLoading: isLoadingStats,
+    error: statsError,
+  } = useQuery<UserStats>({
+    queryKey: ["/api/gamification/user-stats"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: true,
+  });
+
+  // Get leaderboard
+  const {
+    data: leaderboard,
+    isLoading: isLoadingLeaderboard,
+    error: leaderboardError,
+  } = useQuery<LeaderboardEntry[]>({
+    queryKey: ["/api/gamification/leaderboard"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: true,
+  });
+
+  // Get all badges
+  const {
+    data: badges,
+    isLoading: isLoadingBadges,
+    error: badgesError,
+  } = useQuery<Badge[]>({
+    queryKey: ["/api/gamification/badges"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: true,
+  });
+
+  // Check for new badges after a project analysis
   const checkBadgesMutation = useMutation({
-    mutationFn: async (projectId: number) => {
+    mutationFn: async ({ projectId }: { projectId: number }) => {
       const res = await apiRequest("POST", "/api/gamification/check-badges", { projectId });
       return await res.json();
     },
     onSuccess: (data) => {
-      if (data.hasNewBadges) {
+      if (data.newBadges && data.newBadges.length > 0) {
         const badgeNames = data.newBadges.map((badge: Badge) => badge.name).join(", ");
         toast({
-          title: "New Badge Earned!",
+          title: "New Badges Earned!",
           description: `You've earned: ${badgeNames}`,
+          variant: "default",
         });
+        
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ["/api/gamification/user-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/gamification/leaderboard"] });
       }
-      // Invalidate badges and stats to refresh
-      queryClient.invalidateQueries({ queryKey: ["/api/gamification/badges"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/gamification/stats"] });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to Check Badges",
-        description: error.message || "An error occurred while checking for new badges.",
-        variant: "destructive",
-      });
+      console.error("Failed to check for badges:", error);
     },
   });
 
-  const useUserBadges = () => {
-    return useQuery<Badge[], Error>({
-      queryKey: ["/api/gamification/badges"],
-      queryFn: async ({ queryKey }) => {
-        const res = await fetch(queryKey[0] as string, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch badges");
-        }
-        return await res.json();
-      },
-    });
-  };
-
-  const useAllBadges = () => {
-    return useQuery<Badge[], Error>({
-      queryKey: ["/api/gamification/badges/all"],
-      queryFn: async ({ queryKey }) => {
-        const res = await fetch(queryKey[0] as string, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch all badges");
-        }
-        return await res.json();
-      },
-    });
-  };
-
-  const useLeaderboard = () => {
-    return useQuery<LeaderboardEntry[], Error>({
-      queryKey: ["/api/gamification/leaderboard"],
-      queryFn: async ({ queryKey }) => {
-        const res = await fetch(queryKey[0] as string, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch leaderboard");
-        }
-        return await res.json();
-      },
-    });
-  };
-
-  const useUserStats = () => {
-    return useQuery<UserStats, Error>({
-      queryKey: ["/api/gamification/stats"],
-      queryFn: async ({ queryKey }) => {
-        const res = await fetch(queryKey[0] as string, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch user stats");
-        }
-        return await res.json();
-      },
-    });
-  };
-
   return {
-    checkBadgesMutation,
-    useUserBadges,
-    useAllBadges,
-    useLeaderboard,
-    useUserStats,
+    userStats,
+    leaderboard,
+    badges,
+    isLoadingStats,
+    isLoadingLeaderboard,
+    isLoadingBadges,
+    statsError,
+    leaderboardError,
+    badgesError,
+    checkBadges: checkBadgesMutation.mutate,
+    isCheckingBadges: checkBadgesMutation.isPending,
   };
 }

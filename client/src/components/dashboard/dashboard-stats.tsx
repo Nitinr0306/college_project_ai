@@ -4,8 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGamification, UserStats } from "@/hooks/use-gamification";
 
 export default function DashboardStats() {
-  const { useUserStats } = useGamification();
-  const { data: stats, isLoading, error } = useUserStats();
+  const { userStats: stats, isLoadingStats: isLoading, statsError: error } = useGamification();
 
   if (isLoading) {
     return (
