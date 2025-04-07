@@ -1,0 +1,45 @@
+You are tasked with building a web application that promotes sustainability in web development. The application will include advanced AI features such as a Carbon Footprint Estimator , Gamification for Sustainability Goals , and an AI Chatbot . Additionally, it will have user authentication with a login page and support for Google Login . The frontend design should be inspired by the sleek and modern aesthetic of this reference: Sleek Landing Page for CoreShift .
+
+The backend will be implemented using Spring Boot , and the frontend will use modern web technologies (e.g., React.js, Angular, or Vue.js). Ensure seamless integration between the frontend and backend.
+
+Key Features to Implement
+1. Backend Development with Spring Boot
+User Authentication :
+Create a secure login system with roles (e.g., Admin, User).
+Integrate Google OAuth2 for social login.
+Use JWT (JSON Web Tokens) for session management and secure API access.
+API Endpoints :
+Provide RESTful APIs for all frontend interactions (e.g., user data, gamification stats, carbon footprint data).
+Ensure proper error handling and validation for all endpoints.
+Database :
+Use PostgreSQL or MySQL for storing user data, gamification scores, and other metadata.
+Design the database schema to support scalability.
+AI Integration :
+Build APIs for the Carbon Footprint Estimator and Gamification System .
+Integrate the AI chatbot using a library like OpenAI API or Hugging Face Transformers .
+2. AI Features
+Carbon Footprint Estimator :
+Develop an algorithm to estimate the carbon footprint of a website based on hosting provider, traffic, and resource usage.
+Provide suggestions for reducing emissions (e.g., switching to green hosting, optimizing assets).
+Display results in a visually appealing chart or graph format.
+Gamification for Sustainability Goals :
+Implement a points-based system where users earn badges for achieving sustainability milestones (e.g., reducing image size, switching to eco-friendly hosting).
+Create leaderboards to encourage competition among users.
+Store gamification data in the database and provide APIs for retrieving user scores and badges.
+AI Chatbot (Advanced) :
+Build a conversational AI chatbot that answers questions about sustainability, provides tips, and guides users through the platform.
+Use natural language processing (NLP) to make the chatbot intuitive and responsive.
+Train the chatbot on sustainability-related datasets.
+3. Frontend Development
+Design Inspiration :
+Follow the sleek and modern design principles from the reference link: Sleek Landing Page for CoreShift .
+Use a clean layout with bold typography, vibrant colors, and smooth animations.
+Pages to Include :
+Landing Page : A visually appealing homepage with sections for features, testimonials, and a call-to-action.
+Login Page : A minimalistic login form with options for email/password and Google Login.
+Dashboard : A user dashboard displaying gamification stats, carbon footprint estimates, and chatbot interactions.
+Settings Page : Allow users to update their profile and preferences.
+Technologies :
+Use React.js , Angular , or Vue.js for the frontend.
+Use Tailwind CSS or Material-UI for styling to achieve the sleek design.
+Add interactive elements like hover effects, animations, and transitions.
