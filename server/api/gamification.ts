@@ -176,7 +176,7 @@ gamificationRouter.post("/check-badges", async (req, res) => {
 });
 
 // Helper function to check and assign badges
-async function checkAndAssignBadges(userId: number, project: Project) {
+async function checkAndAssignBadges(userId: number, project: any) {
   // Get existing user badges
   const existingBadges = await storage.getUserBadges(userId);
   const existingBadgeIds = existingBadges.map(badge => badge.id);

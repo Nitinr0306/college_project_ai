@@ -376,23 +376,77 @@ export default function DashboardCharts() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={[
-                  { name: 'Images', current: 32, baseline: 55 },
-                  { name: 'JavaScript', current: 25, baseline: 40 },
-                  { name: 'CSS', current: 12, baseline: 18 },
-                  { name: 'HTML', current: 8, baseline: 12 },
-                  { name: 'Fonts', current: 15, baseline: 22 },
-                  { name: 'Server', current: 22, baseline: 38 },
+                  { name: 'Images', current: 32, baseline: 55, saved: 23 },
+                  { name: 'JavaScript', current: 25, baseline: 40, saved: 15 },
+                  { name: 'CSS', current: 12, baseline: 18, saved: 6 },
+                  { name: 'HTML', current: 8, baseline: 12, saved: 4 },
+                  { name: 'Fonts', current: 15, baseline: 22, saved: 7 },
+                  { name: 'Server', current: 22, baseline: 38, saved: 16 },
                 ]}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
                 <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} unit=" kg" />
-                <Tooltip />
-                <Legend verticalAlign="top" height={36} />
-                <ReferenceLine y={0} stroke="#000" />
-                <Bar dataKey="baseline" name="Industry Average" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="current" name="Your Website" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Tooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      // Ensure we have numeric values for calculations
+                      const saved = Number(payload[2]?.value || 0);
+                      const baseline = Number(payload[0]?.value || 1);
+                      // Calculate percentage of carbon saved
+                      const percent = Math.round((saved / baseline) * 100);
+                      
+                      return (
+                        <div className="bg-white p-3 border border-neutral-200 rounded-lg shadow-lg">
+                          <p className="font-semibold">{label}</p>
+                          <div className="flex flex-col space-y-1 mt-2">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-neutral-400 mr-2"></div>
+                              <span className="text-neutral-700 text-sm">
+                                Before: <span className="font-medium">{baseline} kg</span>
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                              <span className="text-neutral-700 text-sm">
+                                Current: <span className="font-medium">{payload[1]?.value} kg</span>
+                              </span>
+                            </div>
+                            <div className="flex items-center text-green-600">
+                              <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                              <span className="text-green-700 text-sm">
+                                Saved: <span className="font-medium">{saved} kg ({percent}%)</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend 
+                  verticalAlign="top" 
+                  height={36}
+                  content={({ payload }) => (
+                    <div className="flex justify-center mt-0 mb-4 space-x-8">
+                      {payload?.slice(0, 2).map((entry, index) => (
+                        <div key={`item-${index}`} className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-sm text-neutral-600">{entry.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                />
+                <ReferenceLine y={0} stroke="#e5e7eb" />
+                <Bar dataKey="baseline" name="Before Optimization" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="current" name="Current Usage" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="saved" name="Carbon Saved" fill="#22c55e" radius={[4, 4, 0, 0]} style={{ display: 'none' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -401,8 +455,18 @@ export default function DashboardCharts() {
             <div className="flex items-start space-x-3">
               <Wind className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-green-800">Your carbon footprint is 42% lower than the industry average</p>
-                <p className="text-xs text-green-700 mt-1">Keep optimizing your website to further reduce your environmental impact!</p>
+                <p className="text-sm font-medium text-green-800">
+                  Your carbon footprint is {stats?.totalCarbonSaved ? (
+                    <>
+                      {Math.round((stats.totalCarbonSaved / 185) * 100)}%
+                    </>
+                  ) : "42%"} lower than the industry average
+                </p>
+                <p className="text-xs text-green-700 mt-1">
+                  You've saved approximately {stats?.totalCarbonSaved ? (
+                    <>{stats.totalCarbonSaved}</>
+                  ) : "71"}kg of CO₂ emissions so far!
+                </p>
               </div>
             </div>
           </div>

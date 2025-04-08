@@ -42,6 +42,9 @@ carbonEstimatorRouter.post("/api/carbon-estimator/analyze", async (req, res) => 
         description: validatedData.description || "",
         carbonFootprint: analysis.carbonFootprint || 0,
         sustainabilityScore: analysis.sustainabilityScore || 0,
+        serverEfficiency: analysis.serverEfficiency || 0,
+        assetOptimization: analysis.assetOptimization || 0,
+        carbonSaved: analysis.carbonSaved || 0,
         status: "completed",
       });
       
@@ -69,6 +72,7 @@ carbonEstimatorRouter.post("/api/carbon-estimator/analyze", async (req, res) => 
         serverEfficiency: analysis.serverEfficiency || 0,
         assetOptimization: analysis.assetOptimization || 0,
         greenHosting: analysis.greenHosting || 0,
+        carbonSaved: analysis.carbonSaved || 0,
         recommendations: analysis.recommendations || [],
       });
     } catch (error) {

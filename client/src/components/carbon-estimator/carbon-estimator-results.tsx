@@ -129,7 +129,7 @@ export default function CarbonEstimatorResults({ result, onReset }: CarbonEstima
               <Progress value={result.assetOptimization} className="h-2" />
             </div>
             
-            <div>
+            <div className="mb-4">
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-neutral-600">Green Hosting</span>
                 <span className={`text-sm font-medium ${getScoreColor(result.greenHosting)}`}>
@@ -137,6 +137,18 @@ export default function CarbonEstimatorResults({ result, onReset }: CarbonEstima
                 </span>
               </div>
               <Progress value={result.greenHosting} className="h-2" />
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-4">
+              <div className="flex items-center">
+                <CheckCircle className="text-green-600 mr-2 h-5 w-5 flex-shrink-0" />
+                <div>
+                  <span className="text-green-800 font-medium">Potential Carbon Savings</span>
+                  <p className="text-green-700 text-sm mt-1">
+                    {result.carbonSaved}kg CO₂ per month with our recommendations
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ export type CarbonAnalysisResult = {
   serverEfficiency: number;
   assetOptimization: number;
   greenHosting: number;
+  carbonSaved: number;
   recommendations: string[];
 };
 
@@ -28,6 +29,9 @@ export type Project = {
   description?: string;
   carbonFootprint?: number;
   sustainabilityScore?: number;
+  serverEfficiency?: number;
+  assetOptimization?: number;
+  carbonSaved?: number;
   status: string;
   createdAt: string;
   updatedAt: string;

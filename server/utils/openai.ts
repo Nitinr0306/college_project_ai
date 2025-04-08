@@ -61,6 +61,7 @@ export async function analyzeWebsiteSustainability(
           - Server efficiency score (0-100)
           - Asset optimization score (0-100)
           - Green hosting rating (0-100)
+          - Carbon saved (in g CO2e) - estimate how much carbon could be saved per month with your recommendations
           - 3-5 specific, actionable recommendations for improvement
           `,
         },
