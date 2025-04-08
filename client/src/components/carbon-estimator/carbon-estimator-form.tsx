@@ -145,22 +145,30 @@ export default function CarbonEstimatorForm({ onAnalyze, isLoading }: CarbonEsti
               />
             </div>
             
-            {/* Add Calculate Button */}
-            <div className="mt-6">
-              <Button 
-                type="submit" 
-                className="w-full bg-primary-600 text-white rounded-lg py-3 hover:bg-primary-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    <span>Calculating...</span>
-                  </div>
-                ) : (
-                  "Calculate Carbon Footprint"
-                )}
-              </Button>
+            {/* Calculate Button with increased prominence */}
+            <div className="mt-10">
+              <div className="p-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg shadow-xl">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-green-600 text-white text-lg font-bold rounded-lg py-5 hover:bg-green-700 shadow-lg transition-all transform hover:scale-[1.02]"
+                  disabled={isLoading}
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span>Analyzing Website Carbon Footprint...</span>
+                    </div>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <span className="animate-bounce-slow mr-2">🌱</span>
+                      CALCULATE CARBON FOOTPRINT
+                      <span className="animate-bounce-slow ml-2">🌱</span>
+                    </span>
+                  )}
+                </Button>
+              </div>
+              <p className="text-center text-sm text-gray-500 mt-2">Get detailed insights about your website's environmental impact</p>
             </div>
           </form>
         </Form>
