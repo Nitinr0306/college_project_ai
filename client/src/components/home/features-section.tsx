@@ -19,7 +19,7 @@ const features = [
     icon: <Bot className="text-2xl text-primary-600" />,
     title: "AI Sustainability Chatbot",
     description: "Get instant answers about sustainable practices with our conversational assistant.",
-    link: "#chatbot"
+    link: "#" // Changed from "#chatbot" since the chatbot is a floating button
   }
 ];
 
