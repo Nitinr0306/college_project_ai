@@ -52,15 +52,10 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
     
-    // This is just a demo implementation, as we don't have Google OAuth set up
-    toast({
-      title: "Google Sign-In",
-      description: "Google Sign-In is not configured in this demo. Please use normal login.",
-    });
+    // Redirect to Google OAuth endpoint
+    window.location.href = "/api/auth/google";
     
-    setTimeout(() => {
-      setIsGoogleLoading(false);
-    }, 1500);
+    // Note: No need to reset loading state as we're redirecting away from this page
   };
 
   return (

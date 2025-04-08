@@ -1,5 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -61,6 +62,52 @@ export function setupAuth(app: Express) {
     const user = await storage.getUser(id);
     done(null, user);
   });
+  
+  // Configure Google OAuth strategy if credentials are provided
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/api/auth/google/callback",
+          scope: ["profile", "email"],
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user already exists with this Google ID
+            const email = profile.emails?.[0]?.value;
+            if (!email) {
+              return done(new Error("Google account has no email address"));
+            }
+            
+            // Find existing user by email
+            let user = await storage.getUserByEmail(email);
+            
+            if (!user) {
+              // Create a new user if they don't exist
+              const randomPassword = randomBytes(16).toString("hex");
+              const hashedPassword = await hashPassword(randomPassword);
+              
+              user = await storage.createUser({
+                username: `google_${profile.id}`,
+                password: hashedPassword, // Random password since they'll use Google to sign in
+                email: email,
+                name: profile.displayName || profile.name?.givenName || email.split("@")[0],
+                profilePicture: profile.photos?.[0]?.value
+              });
+            }
+            
+            return done(null, user);
+          } catch (error) {
+            return done(error as Error);
+          }
+        }
+      )
+    );
+  } else {
+    console.log("Google OAuth not configured. GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required.");
+  }
 
   app.post("/api/register", async (req, res, next) => {
     try {
@@ -107,7 +154,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: "Invalid username or password" });
@@ -145,4 +192,22 @@ export function setupAuth(app: Express) {
     
     res.json(userWithoutPassword);
   });
+  
+  // Google Authentication routes
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Initiate Google OAuth authentication
+    app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+    
+    // Google OAuth callback
+    app.get(
+      "/api/auth/google/callback",
+      passport.authenticate("google", {
+        failureRedirect: "/auth?error=google-auth-failed",
+      }),
+      (req, res) => {
+        // Successful authentication, redirect to home page
+        res.redirect("/");
+      }
+    );
+  }
 }
