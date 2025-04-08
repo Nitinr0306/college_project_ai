@@ -194,11 +194,36 @@ export default function Navbar() {
 
 function NavLink({ href, icon, label, isScrolled }: { href: string; icon: React.ReactNode; label: string; isScrolled: boolean }) {
   const [location] = useLocation();
-  const isActive = location === href || location.startsWith(href.split('#')[0]);
+  
+  // Handle hash links specially
+  const isHashLink = href.includes('#');
+  const hashValue = href.split('#')[1];
+  
+  // For hash links on the home page, scroll to the section instead of navigating
+  const handleClick = (e: React.MouseEvent) => {
+    if (isHashLink && (location === '/' || location === '')) {
+      e.preventDefault();
+      const element = document.getElementById(hashValue);
+      if (element) {
+        window.scrollTo({
+          top: element.getBoundingClientRect().top + window.scrollY - 80,
+          behavior: 'smooth'
+        });
+        // Update URL hash without full navigation
+        window.history.pushState(null, '', href);
+      }
+    }
+  };
+  
+  // Active state for hash links is determined by checking current hash
+  const isActive = isHashLink 
+    ? window.location.hash === `#${hashValue}` || (window.location.hash === '' && hashValue === 'features' && location === '/') 
+    : location === href || location.startsWith(href.split('#')[0]);
   
   return (
-    <Link 
+    <a 
       href={href} 
+      onClick={handleClick}
       className={`
         px-4 
         py-2 
@@ -207,6 +232,7 @@ function NavLink({ href, icon, label, isScrolled }: { href: string; icon: React.
         items-center 
         space-x-1.5
         transition-all
+        cursor-pointer
         ${isActive 
           ? isScrolled 
             ? 'bg-primary-100 text-primary-700 font-medium' 
@@ -219,7 +245,7 @@ function NavLink({ href, icon, label, isScrolled }: { href: string; icon: React.
     >
       {icon}
       <span>{label}</span>
-    </Link>
+    </a>
   );
 }
 
