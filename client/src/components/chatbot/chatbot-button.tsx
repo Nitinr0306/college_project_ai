@@ -8,9 +8,6 @@ type ChatbotButtonProps = {
 export default function ChatbotButton({ toggleChatbot }: ChatbotButtonProps) {
   return (
     <div className="fixed bottom-8 right-8 z-50">
-      <div className="animate-bounce-slow mb-2 bg-white px-3 py-1 rounded-lg shadow-md text-sm font-medium text-center">
-        Ask me about sustainability!
-      </div>
       <div className="relative">
         {/* Pulsing ring animation */}
         <div className="absolute inset-0 rounded-full bg-green-400 opacity-30 animate-ping"></div>

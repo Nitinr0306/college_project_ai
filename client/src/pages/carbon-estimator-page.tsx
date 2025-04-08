@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Menu, ArrowLeft } from "lucide-react";
+import { Menu, ArrowLeft, XCircle } from "lucide-react";
 import { Link } from "wouter";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import CarbonEstimatorForm from "@/components/carbon-estimator/carbon-estimator-form";
@@ -9,11 +9,15 @@ import CarbonEstimatorResults from "@/components/carbon-estimator/carbon-estimat
 import { useCarbonAnalysis, CarbonAnalysisResult } from "@/hooks/use-carbonapi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectsTable from "@/components/dashboard/projects-table";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function CarbonEstimatorPage() {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<CarbonAnalysisResult | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   
   const { analyzeWebsiteMutation } = useCarbonAnalysis();
   
@@ -26,6 +30,9 @@ export default function CarbonEstimatorPage() {
     hostingProvider: string; 
     monthlyTraffic: string;
   }) => {
+    // Reset any previous errors
+    setAnalysisError(null);
+    
     try {
       const result = await analyzeWebsiteMutation.mutateAsync({
         url: formData.url,
@@ -36,11 +43,20 @@ export default function CarbonEstimatorPage() {
       setAnalysisResult(result);
     } catch (error) {
       console.error("Analysis error:", error);
+      
+      // Show error alert and toast
+      setAnalysisError("Failed to analyze website. Please try again later.");
+      toast({
+        variant: "destructive",
+        title: "Analysis Failed",
+        description: "We couldn't analyze this website. Please try again with a different URL or check your connection."
+      });
     }
   };
 
   const resetAnalysis = () => {
     setAnalysisResult(null);
+    setAnalysisError(null);
   };
 
   return (
@@ -102,6 +118,16 @@ export default function CarbonEstimatorPage() {
               
               <TabsContent value="estimator" className="mt-6">
                 <div className="bg-white p-8 rounded-xl shadow-md">
+                  {analysisError && (
+                    <Alert variant="destructive" className="mb-6">
+                      <XCircle className="h-4 w-4" />
+                      <AlertTitle>Analysis Failed</AlertTitle>
+                      <AlertDescription>
+                        {analysisError}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
                   {analysisResult ? (
                     <CarbonEstimatorResults result={analysisResult} onReset={resetAnalysis} />
                   ) : (
