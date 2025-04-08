@@ -251,12 +251,41 @@ function NavLink({ href, icon, label, isScrolled }: { href: string; icon: React.
 
 function MobileNavLink({ href, icon, label, onClick }: { href: string; icon: React.ReactNode; label: string; onClick: () => void }) {
   const [location] = useLocation();
-  const isActive = location === href || location.startsWith(href.split('#')[0]);
+  
+  // Handle hash links specially
+  const isHashLink = href.includes('#');
+  const hashValue = href.split('#')[1];
+  
+  // For hash links on the home page, scroll to the section instead of navigating
+  const handleClick = (e: React.MouseEvent) => {
+    if (isHashLink && (location === '/' || location === '')) {
+      e.preventDefault();
+      const element = document.getElementById(hashValue);
+      if (element) {
+        window.scrollTo({
+          top: element.getBoundingClientRect().top + window.scrollY - 80,
+          behavior: 'smooth'
+        });
+        // Update URL hash without full navigation
+        window.history.pushState(null, '', href);
+      }
+      
+      // Also call the original onClick to close the menu
+      onClick();
+    } else {
+      onClick();
+    }
+  };
+  
+  // Active state for hash links is determined by checking current hash
+  const isActive = isHashLink 
+    ? window.location.hash === `#${hashValue}` || (window.location.hash === '' && hashValue === 'features' && location === '/') 
+    : location === href || location.startsWith(href.split('#')[0]);
   
   return (
-    <Link 
+    <a 
       href={href} 
-      onClick={onClick}
+      onClick={handleClick}
       className={`
         p-3 
         rounded-xl
@@ -274,6 +303,6 @@ function MobileNavLink({ href, icon, label, onClick }: { href: string; icon: Rea
         {icon}
       </div>
       <span>{label}</span>
-    </Link>
+    </a>
   );
 }

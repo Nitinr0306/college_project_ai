@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 type ChatbotModalProps = {
   isOpen: boolean;
@@ -9,19 +9,38 @@ type ChatbotModalProps = {
 };
 
 export default function ChatbotModal({ isOpen, toggleChatbot }: ChatbotModalProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const botpressUrl = "https://cdn.botpress.cloud/webchat/v2.3/shareable.html?configUrl=https://files.bpcontent.cloud/2025/04/08/06/20250408061211-F1GR806Y.json";
-
   useEffect(() => {
-    // Initialize the Botpress chat when the component mounts or when isOpen changes
-    if (isOpen && iframeRef.current) {
-      // Force a reload of the iframe when opened to ensure it's fresh
-      const iframe = iframeRef.current;
-      const src = iframe.src;
-      iframe.src = "";
-      setTimeout(() => {
-        iframe.src = src;
-      }, 50);
+    // Toggle the Botpress widget visibility based on our own UI state
+    const toggleBotpressWidget = () => {
+      const botpressWidget = document.querySelector('iframe[id^="bp-widget"]');
+      const botpressContainer = document.getElementById('bp-web-widget-container');
+      
+      if (botpressWidget && botpressContainer) {
+        // We hide Botpress's built-in widget container
+        botpressContainer.style.display = 'none';
+        
+        // Move the iframe into our container when our modal is open
+        const ourContainer = document.getElementById('custom-botpress-container');
+        if (ourContainer && isOpen) {
+          ourContainer.appendChild(botpressWidget);
+          botpressWidget.style.display = 'block';
+          botpressWidget.style.width = '100%';
+          botpressWidget.style.height = '100%';
+          botpressWidget.style.border = 'none';
+        }
+      }
+    };
+
+    // Try multiple times to find and move the Botpress iframe
+    // since it might not be immediately available
+    if (isOpen) {
+      const checkInterval = setInterval(() => {
+        toggleBotpressWidget();
+      }, 300);
+      
+      return () => {
+        clearInterval(checkInterval);
+      };
     }
   }, [isOpen]);
 
@@ -43,17 +62,8 @@ export default function ChatbotModal({ isOpen, toggleChatbot }: ChatbotModalProp
         </Button>
       </CardHeader>
       
-      <div className="w-full h-[calc(100%-60px)] overflow-hidden">
-        <iframe
-          ref={iframeRef}
-          src={botpressUrl}
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          className="border-none"
-          allow="microphone; geolocation"
-          title="Sustainability Chatbot"
-        ></iframe>
+      <div id="custom-botpress-container" className="w-full h-[calc(100%-60px)] overflow-hidden">
+        {/* Botpress iframe will be moved here */}
       </div>
     </Card>
   );
