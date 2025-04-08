@@ -81,26 +81,13 @@ export default function CarbonEstimatorForm({ onAnalyze, isLoading }: CarbonEsti
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Website URL</FormLabel>
-                  <div className="flex">
-                    <FormControl>
-                      <Input
-                        placeholder="https://yourwebsite.com"
-                        {...field}
-                        className="flex-1 px-4 py-2 border border-neutral-300 rounded-l-lg"
-                      />
-                    </FormControl>
-                    <Button 
-                      type="submit" 
-                      className="bg-primary-600 text-white rounded-r-lg hover:bg-primary-700"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Analyze"
-                      )}
-                    </Button>
-                  </div>
+                  <FormControl>
+                    <Input
+                      placeholder="https://yourwebsite.com"
+                      {...field}
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -156,6 +143,24 @@ export default function CarbonEstimatorForm({ onAnalyze, isLoading }: CarbonEsti
                   </FormItem>
                 )}
               />
+            </div>
+            
+            {/* Add Calculate Button */}
+            <div className="mt-6">
+              <Button 
+                type="submit" 
+                className="w-full bg-primary-600 text-white rounded-lg py-3 hover:bg-primary-700"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    <span>Calculating...</span>
+                  </div>
+                ) : (
+                  "Calculate Carbon Footprint"
+                )}
+              </Button>
             </div>
           </form>
         </Form>
