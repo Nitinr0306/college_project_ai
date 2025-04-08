@@ -7,9 +7,9 @@ import CarbonEstimatorPage from "@/pages/carbon-estimator-page";
 import GamificationPage from "@/pages/gamification-page";
 import SettingsPage from "@/pages/settings-page";
 import { ProtectedRoute } from "./lib/protected-route";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { AuthProvider } from "./hooks/use-auth";
-import ChatbotButton from "./components/chatbot/chatbot-button";
+import SimpleChatbot from "./components/chatbot/simple-chatbot";
 
 function Router() {
   // This useEffect handles direct navigation to hash links and smooth scrolling
@@ -56,17 +56,10 @@ function Router() {
 }
 
 function App() {
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-
-  const toggleChatbot = () => {
-    // Open a popup window to Botpress
-    window.open('https://cdn.botpress.cloud/webchat/v2.3/index.html?options=%7B%22config%22%3A%7B%22botId%22%3A%22F1GR806Y%22%2C%22hostUrl%22%3A%22https%3A%2F%2Fcdn.botpress.cloud%2Fwebchat%2Fv2.3%22%2C%22messagingUrl%22%3A%22https%3A%2F%2Fmessaging.botpress.cloud%22%2C%22clientId%22%3A%22F1GR806Y%22%2C%22lazySocket%22%3Atrue%2C%22themeName%22%3A%22modern%22%2C%22botName%22%3A%22GreenWeb%20Assistant%22%2C%22stylesheet%22%3A%22https%3A%2F%2Fcdn.botpress.cloud%2Fwebchat%2Fv2.3%2Fstyles%2Fwebchat.css%22%2C%22frontendVersion%22%3A%22v2.3%22%2C%22showPoweredBy%22%3Afalse%2C%22theme%22%3A%22light%22%2C%22themeColor%22%3A%22%2318b18f%22%7D%7D', 'GreenWebChatbot', 'width=450,height=600,resizable=yes');
-  };
-
   return (
     <AuthProvider>
       <Router />
-      <ChatbotButton toggleChatbot={toggleChatbot} />
+      <SimpleChatbot />
     </AuthProvider>
   );
 }
