@@ -46,8 +46,6 @@ export const userBadges = pgTable("user_badges", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   badgeId: integer("badge_id").notNull().references(() => badges.id),
-  earnedAt: timestamp("earned_at").defaultNow().notNull(),
-  projectId: integer("project_id").references(() => projects.id),
   achievedAt: timestamp("achieved_at").defaultNow().notNull(),
 });
 
@@ -103,12 +101,7 @@ export const insertBadgeSchema = createInsertSchema(badges).pick({
   points: true,
 });
 
-export const insertUserBadgeSchema = createInsertSchema(userBadges).pick({
-  userId: true,
-  badgeId: true,
-  earnedAt: true,
-  projectId: true,
-});
+export const insertUserBadgeSchema = createInsertSchema(userBadges);
 
 export const insertOptimizationSchema = createInsertSchema(optimizations).pick({
   projectId: true,

@@ -182,8 +182,7 @@ async function checkForBadges(userId: number, projectId: number, analysis: any) 
         await storage.assignBadgeToUser({
           userId,
           badgeId: badge.id,
-          earnedAt: new Date(),
-          projectId,
+          achievedAt: new Date(),
         });
       }
     }

@@ -15,12 +15,12 @@ export function useChatbot() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const res = await apiRequest("POST", "/api/chatbot/send", { message });
+      const res = await apiRequest("POST", "/api/chatbot/messages", { content: message });
       return await res.json();
     },
     onSuccess: () => {
       // Invalidate chat history to refresh with new messages
-      queryClient.invalidateQueries({ queryKey: ["/api/chatbot/history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chatbot/messages"] });
     },
     onError: (error: Error) => {
       toast({
@@ -33,7 +33,7 @@ export function useChatbot() {
 
   const useChatHistory = () => {
     return useQuery<ChatMessage[], Error>({
-      queryKey: ["/api/chatbot/history"],
+      queryKey: ["/api/chatbot/messages"],
       queryFn: async ({ queryKey }) => {
         const res = await fetch(queryKey[0] as string, {
           credentials: "include",

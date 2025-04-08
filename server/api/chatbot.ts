@@ -5,7 +5,7 @@ import { generateSustainabilityInsights } from "../utils/openai";
 export const chatbotRouter = Router();
 
 // Get chat history for a user
-chatbotRouter.get("/api/chatbot/messages", async (req, res) => {
+chatbotRouter.get("/messages", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "You must be logged in to access chat history" });
   }
@@ -20,7 +20,7 @@ chatbotRouter.get("/api/chatbot/messages", async (req, res) => {
 });
 
 // Send a message and get a response
-chatbotRouter.post("/api/chatbot/messages", async (req, res) => {
+chatbotRouter.post("/messages", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "You must be logged in to use the chatbot" });
   }
@@ -72,6 +72,32 @@ chatbotRouter.post("/api/chatbot/messages", async (req, res) => {
   } catch (error) {
     console.error("Error in chatbot API:", error);
     res.status(500).json({ error: "An error occurred processing your message" });
+  }
+});
+
+// Get a random sustainability tip
+chatbotRouter.get("/tip", async (req, res) => {
+  try {
+    // Array of sustainability tips
+    const tips = [
+      "Use system fonts instead of custom web fonts to reduce page weight and carbon emissions.",
+      "Optimize your images before uploading them to reduce file size and bandwidth usage.",
+      "Consider using dark mode to reduce energy consumption on OLED displays.",
+      "Implement lazy loading for images and videos to reduce initial page load size.",
+      "Choose a green web hosting provider that uses renewable energy for their data centers.",
+      "Use CSS instead of JavaScript for animations when possible to reduce CPU usage.",
+      "Minify your CSS, JavaScript, and HTML files to reduce file sizes.",
+      "Implement proper caching strategies to reduce repeat downloads and server requests.",
+      "Consider a static site if your content doesn't need to be dynamic.",
+      "Regularly audit your website's performance and make optimizations."
+    ];
+    
+    // Return a random tip
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    res.json({ tip: randomTip });
+  } catch (error) {
+    console.error("Error getting sustainability tip:", error);
+    res.status(500).json({ error: "Failed to get sustainability tip" });
   }
 });
 
