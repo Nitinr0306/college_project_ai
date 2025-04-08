@@ -6,7 +6,7 @@ import { z } from "zod";
 export const carbonEstimatorRouter = Router();
 
 // Analyze website and estimate carbon footprint
-carbonEstimatorRouter.post("/api/carbon-estimator/analyze", async (req, res) => {
+carbonEstimatorRouter.post("/analyze", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "You must be logged in to use this feature" });
   }
@@ -86,7 +86,7 @@ carbonEstimatorRouter.post("/api/carbon-estimator/analyze", async (req, res) => 
 });
 
 // Get projects for the current user
-carbonEstimatorRouter.get("/api/carbon-estimator/projects", async (req, res) => {
+carbonEstimatorRouter.get("/projects", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "You must be logged in to view your projects" });
   }
@@ -101,7 +101,7 @@ carbonEstimatorRouter.get("/api/carbon-estimator/projects", async (req, res) => 
 });
 
 // Get a specific project with optimizations
-carbonEstimatorRouter.get("/api/carbon-estimator/projects/:id", async (req, res) => {
+carbonEstimatorRouter.get("/projects/:id", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "You must be logged in to view project details" });
   }
