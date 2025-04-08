@@ -7,10 +7,18 @@ import CarbonEstimatorPage from "@/pages/carbon-estimator-page";
 import GamificationPage from "@/pages/gamification-page";
 import SettingsPage from "@/pages/settings-page";
 import { ProtectedRoute } from "./lib/protected-route";
-import ChatbotButton from "./components/chatbot/chatbot-button";
-import ChatbotModal from "./components/chatbot/chatbot-modal";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { AuthProvider } from "./hooks/use-auth";
+
+// Add TypeScript declaration for Botpress
+declare global {
+  interface Window {
+    botpressWebChat: {
+      sendEvent: (event: { type: string }) => void;
+      onEvent: (callback: (event: any) => void) => void;
+    };
+  }
+}
 
 function Router() {
   // This useEffect handles direct navigation to hash links and smooth scrolling
@@ -57,51 +65,9 @@ function Router() {
 }
 
 function App() {
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-
-  const toggleChatbot = () => {
-    setIsChatbotOpen(prev => !prev);
-  };
-
-  // Add Botpress scripts
-  useEffect(() => {
-    // Load the Botpress scripts when the app mounts
-    const injectScript = document.createElement('script');
-    injectScript.id = 'botpress-script-inject';
-    injectScript.src = "https://cdn.botpress.cloud/webchat/v2.3/inject.js";
-    
-    const configScript = document.createElement('script');
-    configScript.id = 'botpress-script-config';
-    configScript.src = "https://files.bpcontent.cloud/2025/04/08/06/20250408061211-X4ZIFSVN.js";
-    
-    // Only add scripts if they don't already exist
-    if (!document.getElementById('botpress-script-inject')) {
-      document.head.appendChild(injectScript);
-    }
-    
-    if (!document.getElementById('botpress-script-config')) {
-      document.head.appendChild(configScript);
-    }
-    
-    return () => {
-      // Clean up if needed
-      const scriptToRemove = document.getElementById('botpress-script-inject');
-      if (scriptToRemove) {
-        scriptToRemove.remove();
-      }
-      
-      const configToRemove = document.getElementById('botpress-script-config');
-      if (configToRemove) {
-        configToRemove.remove();
-      }
-    };
-  }, []);
-
   return (
     <AuthProvider>
       <Router />
-      <ChatbotButton toggleChatbot={toggleChatbot} />
-      <ChatbotModal isOpen={isChatbotOpen} toggleChatbot={toggleChatbot} />
     </AuthProvider>
   );
 }
