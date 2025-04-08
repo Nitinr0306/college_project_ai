@@ -38,11 +38,19 @@ export function useChatbot() {
         const res = await fetch(queryKey[0] as string, {
           credentials: "include",
         });
+        
+        // If unauthorized (401), return empty array instead of throwing error
+        if (res.status === 401) {
+          return [];
+        }
+        
         if (!res.ok) {
           throw new Error("Failed to fetch chat history");
         }
+        
         return await res.json();
       },
+      retry: 1, // Only retry once to avoid too many requests
     });
   };
 

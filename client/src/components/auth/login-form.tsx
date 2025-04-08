@@ -44,6 +44,9 @@ export default function LoginForm({ onToggleForm }: { onToggleForm: () => void }
         username: data.username,
         password: data.password,
       });
+      
+      // Redirect to dashboard after successful login
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Login error:", error);
     }

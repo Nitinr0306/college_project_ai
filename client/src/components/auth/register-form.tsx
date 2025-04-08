@@ -57,6 +57,9 @@ export default function RegisterForm({ onToggleForm }: { onToggleForm: () => voi
         title: "Registration successful",
         description: "Welcome to GreenWeb! You are now registered and logged in.",
       });
+      
+      // Redirect to dashboard after successful registration
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Registration error:", error);
       

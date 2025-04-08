@@ -73,6 +73,19 @@ export default function ChatbotModal({ isOpen, toggleChatbot }: ChatbotModalProp
             <div className="flex items-center justify-center h-full">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : !user ? (
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-2">
+                  <Bot className="text-primary-600 text-sm" size={16} />
+                </div>
+                <div className="bg-neutral-100 rounded-lg p-3 max-w-[80%]">
+                  <p className="text-neutral-800">
+                    Please sign in to use the chatbot and get personalized sustainability advice.
+                  </p>
+                </div>
+              </div>
+            </div>
           ) : chatHistory && chatHistory.length > 0 ? (
             <div className="flex flex-col space-y-4">
               {chatHistory.map((msg: ChatMessage) => (
