@@ -44,7 +44,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="bg-white p-2 rounded-full shadow-md">
+            <div className="bg-white p-2 rounded-full shadow-md flex items-center justify-center">
               <Recycle className="text-primary-600 h-6 w-6" />
             </div>
             <span className={`font-bold text-xl ${scrolled ? 'text-primary-700' : 'text-white'}`}>
@@ -55,7 +55,7 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center">
             <div className={`
-              bg-${scrolled ? 'white/70' : 'white/20'} 
+              ${scrolled ? 'bg-white/70' : 'bg-white/20'} 
               backdrop-blur-md 
               rounded-full 
               px-6 py-2 

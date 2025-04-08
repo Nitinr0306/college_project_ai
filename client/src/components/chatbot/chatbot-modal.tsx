@@ -130,24 +130,26 @@ export default function ChatbotModal({ isOpen, toggleChatbot }: ChatbotModalProp
       <Separator />
       
       <CardFooter className="p-3">
-        <form onSubmit={handleSubmit} className="flex items-center w-full">
+        <form onSubmit={handleSubmit} className="flex items-center w-full gap-2">
           <Input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask about sustainability..."
-            className="flex-1 px-4 py-2 border border-neutral-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="flex-1 rounded-full border-neutral-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             disabled={!user || sendMessageMutation.isPending}
           />
           <Button 
             type="submit"
             disabled={!user || sendMessageMutation.isPending} 
-            className="bg-primary-600 text-white px-4 py-2 rounded-r-lg hover:bg-primary-700 transition-colors"
+            size="icon"
+            className="h-10 w-10 rounded-full bg-primary-600 hover:bg-primary-700 text-white shadow-md"
+            variant="default"
           >
             {sendMessageMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send size={16} />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </form>
