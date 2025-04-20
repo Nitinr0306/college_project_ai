@@ -14,6 +14,23 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     
+    <!-- Inline Styles for Calculator Fixes -->
+    <style>
+        #personal-calculator {
+            display: block !important;
+        }
+        #website-calculator {
+            display: none !important;
+        }
+        /* When active class is applied, this will override the above rules */
+        #website-calculator.active {
+            display: block !important;
+        }
+        #personal-calculator.inactive {
+            display: none !important;
+        }
+    </style>
+    
     <!-- Tailwind Config -->
     <script>
         tailwind.config = {

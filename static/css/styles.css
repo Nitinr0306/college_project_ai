@@ -1,88 +1,138 @@
-/* Custom Animations */
+/* Primary Colors */
+:root {
+    --color-primary: #4CAF50;
+    --color-primary-dark: #388E3C;
+    --color-secondary: #2196F3;
+    --color-accent: #FF9800;
+}
+
+/* Calculator Container Fixes */
+.website-calc-container {
+    display: none;
+}
+
+#personal-calculator {
+    display: block;
+}
+
+/* This ensures our tab system works properly */
+#personal-tab.active ~ #personal-calculator {
+    display: block !important;
+}
+
+#website-tab.active ~ #website-calculator {
+    display: block !important;
+}
+
+/* Force display when tab is active */
+.active-calculator {
+    display: block !important;
+}
+
+/* Global styles */
+body {
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.bg-primary {
+    background-color: var(--color-primary);
+}
+
+.bg-secondary {
+    background-color: var(--color-secondary);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+.border-primary {
+    border-color: var(--color-primary);
+}
+
+.hover\:bg-primary-dark:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* Hero section */
+.hero {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.8) 0%, rgba(56, 142, 60, 0.9) 100%), url('../img/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Animations */
 .animate-fade-in {
-    animation: fadeIn 0.8s ease-in-out;
+    animation: fadeIn 0.8s ease-in-out forwards;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Chat message styling */
-.chat-message.bot {
-    align-self: flex-start;
-}
-
-.chat-message.user {
-    align-self: flex-end;
-}
-
-.chat-message.user .bg-gray-100 {
-    background-color: #EFF6FF; /* Light blue for user messages */
-}
-
-/* Smooth transitions */
-.transition-all {
-    transition: all 0.3s ease;
-}
-
-/* Hover effects */
-.hover-scale:hover {
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #22C55E;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #16A34A;
-}
-
-/* Loading animation */
-.loading-dots:after {
-    content: '.';
-    animation: dots 1.5s steps(5, end) infinite;
-}
-
-@keyframes dots {
-    0%, 20% { content: '.'; }
-    40% { content: '..'; }
-    60% { content: '...'; }
-    80%, 100% { content: ''; }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Focus visible outline for accessibility */
-:focus-visible {
-    outline: 2px solid #22C55E;
-    outline-offset: 2px;
+/* Ripple effect */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
 }
 
-/* Chart tooltip styling */
-.chart-tooltip {
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 14px;
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Calculator styling */
+.calculator-section {
+    background-color: #f9fafb;
+}
+
+/* Chatbot styling */
+.chat-message {
+    transition: all 0.3s ease;
+}
+
+/* Footer styling */
+.footer {
+    background-color: #1a1a1a;
+}
+
+/* Card hover effects */
+.card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Loader */
+.loader {
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

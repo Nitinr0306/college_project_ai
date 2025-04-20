@@ -6,10 +6,14 @@ import random
 
 logger = logging.getLogger(__name__)
 
-# Ollama API endpoint - configurable via environment variables
-OLLAMA_API_HOST = os.environ.get('OLLAMA_API_HOST', 'localhost')
+# Ollama API endpoint - configurable via environment variables or use the one specified
+# The typical Ollama setup runs on localhost:11434, but we need to make it accessible from our Flask app
+OLLAMA_API_HOST = os.environ.get('OLLAMA_API_HOST', '0.0.0.0')  # Use 0.0.0.0 to allow connections from any IP
 OLLAMA_API_PORT = os.environ.get('OLLAMA_API_PORT', '11434')
 OLLAMA_API_URL = f"http://{OLLAMA_API_HOST}:{OLLAMA_API_PORT}/api/generate"
+
+# Alternate URL - uncomment if needed for testing directly from local Ollama
+# OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
 logger.debug(f"Using Ollama API URL: {OLLAMA_API_URL}")
 
@@ -69,47 +73,74 @@ def get_chatbot_response(user_message):
     Returns:
         A response about sustainability
     """
-    # First, try to get a response from Ollama API
-    try:
-        # Create a prompt focused on sustainability
-        prompt = f"""You are a helpful sustainability assistant focused on providing information about 
-        carbon footprints, climate change, and environmental topics. 
-        
-        User query: {user_message}
-        
-        Please provide an informative, accurate, and helpful response about this environmental topic.
-        Keep your answer concise, clear, and focused on sustainability.
-        """
-        
-        # Prepare the payload for Ollama API
-        payload = {
-            "model": "llama2",
-            "prompt": prompt,
-            "stream": False
-        }
-        
-        logger.debug(f"Sending request to Ollama API with message: {user_message}")
-        
-        # Make a request to the Ollama API with a shorter timeout
-        response = requests.post(OLLAMA_API_URL, json=payload, timeout=5)
-        
-        # Check if request was successful
-        if response.status_code == 200:
-            response_data = response.json()
-            bot_response = response_data.get('response', '')
-            logger.debug(f"Received response from Ollama: {bot_response[:50]}...")
-            return bot_response
+    # First, try to get a response from Ollama API (both localhost and typical Ollama endpoints)
+    for api_url in [OLLAMA_API_URL, "http://localhost:11434/api/generate"]:
+        try:
+            # Create a prompt focused on sustainability
+            prompt = f"""You are a helpful sustainability assistant focused on providing information about 
+            carbon footprints, climate change, and environmental topics. 
+            
+            User query: {user_message}
+            
+            Please provide an informative, accurate, and helpful response about this environmental topic.
+            Keep your answer concise, clear, and focused on sustainability.
+            """
+            
+            # Prepare the payload for Ollama API
+            payload = {
+                "model": "llama2",
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                    "top_k": 40
+                }
+            }
+            
+            logger.debug(f"Sending request to Ollama API at {api_url} with message: {user_message}")
+            
+            # Add headers for JSON content
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Make a request to the Ollama API with a shorter timeout
+            response = requests.post(api_url, json=payload, headers=headers, timeout=10)
+            
+            # Check if request was successful
+            if response.status_code == 200:
+                response_data = response.json()
+                # Debug the full response structure
+                logger.debug(f"Full Ollama response: {response_data}")
+                
+                # Ollama's response format changed, checking both possible formats
+                if 'response' in response_data:
+                    bot_response = response_data.get('response', '')
+                    logger.debug(f"Received response from Ollama (format 1): {bot_response[:50]}...")
+                    return bot_response
+                elif 'message' in response_data:
+                    bot_response = response_data.get('message', {}).get('content', '')
+                    logger.debug(f"Received response from Ollama (format 2): {bot_response[:50]}...")
+                    return bot_response
+                else:
+                    logger.warning(f"Unknown Ollama response format: {response_data}")
+                    # Continue to next API URL or fallback
+            else:
+                logger.warning(f"Ollama API at {api_url} returned status code: {response.status_code}")
+                # Continue to next API URL or fallback
+                
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Could not connect to Ollama API at {api_url}: {str(e)}")
+            # Continue to next API URL or fallback
+            
+        except Exception as e:
+            logger.warning(f"Error in Ollama response from {api_url}: {str(e)}")
+            # Continue to next API URL or fallback
     
-    except requests.exceptions.RequestException as e:
-        logger.warning(f"Could not connect to Ollama API: {str(e)}")
-        # Continue to fallback responses
-        
-    except Exception as e:
-        logger.warning(f"Error in Ollama response: {str(e)}")
-        # Continue to fallback responses
-    
-    # Log that we're switching to fallback responses
-    logger.info(f"Using fallback response system for query: {user_message}")
+    # If we reach here, all API attempts failed - log that we're switching to fallback responses
+    logger.info(f"All Ollama API connection attempts failed, using fallback response system for query: {user_message}")
     
     # Improved fallback response system with better natural language understanding
     user_message_lower = user_message.lower()
