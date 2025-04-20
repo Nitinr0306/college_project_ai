@@ -1,141 +1,138 @@
 import os
 import logging
-from flask import Flask, render_template, request, jsonify
 import requests
+from flask import Flask, render_template, request, jsonify
+
+# Configure app
+app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", "default_secret_key")
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-# Create the Flask app
-app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
 
 # Ollama API endpoint
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
-# Carbon footprint conversion factors
-CARBON_FACTORS = {
-    "electricity": {
-        "unit": "kWh",
-        "factor": 0.233  # kg CO2e per kWh (global average)
-    },
-    "transportation": {
-        "car": {
-            "unit": "km",
-            "factor": 0.192  # kg CO2e per km
-        },
-        "bus": {
-            "unit": "km",
-            "factor": 0.105  # kg CO2e per km
-        },
-        "train": {
-            "unit": "km",
-            "factor": 0.041  # kg CO2e per km
-        },
-        "plane": {
-            "unit": "km",
-            "factor": 0.255  # kg CO2e per km
-        }
-    },
-    "diet": {
-        "meat_heavy": 7.19,  # kg CO2e per day
-        "meat_medium": 5.63,  # kg CO2e per day
-        "pescatarian": 3.91,  # kg CO2e per day
-        "vegetarian": 3.81,   # kg CO2e per day
-        "vegan": 2.89         # kg CO2e per day
-    }
-}
-
 @app.route('/')
 def index():
-    """Render the main page of the application."""
+    """Render the main page of the application"""
     return render_template('index.html')
 
 @app.route('/calculate', methods=['POST'])
-def calculate():
-    """Calculate carbon footprint based on user inputs."""
+def calculate_footprint():
+    """Calculate carbon footprint based on user inputs"""
     try:
         data = request.json
-        logger.debug(f"Received data: {data}")
         
-        # Extract values from form data
+        # Extract values from form
         electricity = float(data.get('electricity', 0))
-        transport_type = data.get('transportType', 'car')
-        transport_distance = float(data.get('transportDistance', 0))
-        diet_type = data.get('dietType', 'meat_medium')
+        transportation_type = data.get('transportationType', '')
+        distance = float(data.get('distance', 0))
+        diet = data.get('diet', '')
         
-        # Calculate carbon footprint components
-        electricity_footprint = electricity * CARBON_FACTORS['electricity']['factor']
+        # Carbon footprint calculation factors (kg CO2e)
+        # These are simplified estimates and could be refined
+        electricity_factor = 0.5  # kg CO2e per kWh
         
-        transport_footprint = transport_distance * CARBON_FACTORS['transportation'][transport_type]['factor']
+        transportation_factors = {
+            'car': 0.192,          # kg CO2e per km
+            'bus': 0.105,          # kg CO2e per km
+            'train': 0.041,        # kg CO2e per km
+            'motorcycle': 0.103,   # kg CO2e per km
+            'bicycle': 0,          # kg CO2e per km
+            'walking': 0,          # kg CO2e per km
+            'plane': 0.255         # kg CO2e per km
+        }
         
-        diet_footprint = CARBON_FACTORS['diet'][diet_type]
+        diet_factors = {
+            'meat-heavy': 7.19,    # kg CO2e per day
+            'omnivore': 5.63,      # kg CO2e per day
+            'pescatarian': 3.91,   # kg CO2e per day
+            'vegetarian': 3.81,    # kg CO2e per day
+            'vegan': 2.89          # kg CO2e per day
+        }
         
-        # Calculate total carbon footprint
-        total_footprint = electricity_footprint + transport_footprint + diet_footprint
+        # Calculate footprint components
+        electricity_footprint = electricity * electricity_factor
+        transportation_footprint = distance * transportation_factors.get(transportation_type, 0)
+        diet_footprint = diet_factors.get(diet, 0)
         
-        # Prepare the result
+        # Calculate total footprint (daily basis)
+        total_footprint = electricity_footprint + transportation_footprint + diet_footprint
+        
+        # Calculate annual footprint
+        annual_footprint = total_footprint * 365
+        
+        # Prepare response with detailed breakdown
         result = {
-            'total': round(total_footprint, 2),
-            'components': {
+            'success': True,
+            'totalFootprint': round(total_footprint, 2),
+            'annualFootprint': round(annual_footprint, 2),
+            'breakdown': {
                 'electricity': round(electricity_footprint, 2),
-                'transportation': round(transport_footprint, 2),
+                'transportation': round(transportation_footprint, 2),
                 'diet': round(diet_footprint, 2)
             }
         }
         
-        logger.debug(f"Calculation result: {result}")
         return jsonify(result)
     
     except Exception as e:
         logger.error(f"Error calculating carbon footprint: {str(e)}")
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Handle chat messages by forwarding them to the Ollama API."""
+    """Process chat messages using Ollama with Llama2 model"""
     try:
         data = request.json
         user_message = data.get('message', '')
         
-        # Create a prompt that guides the model to respond about sustainability
-        prompt = f"""You are a helpful sustainability assistant. Your primary focus is on environmental topics, 
-carbon footprint reduction, and sustainable living practices. 
-
-User message: {user_message}
-
-Provide a helpful, informative, and concise response related to sustainability, carbon footprint, 
-or environmental topics. If the question is not related to these areas, gently guide the conversation 
-back to sustainability topics."""
+        # Context to focus responses on sustainability topics
+        prompt = f"""You are a sustainability assistant providing information about carbon footprints, 
+        eco-friendly practices, and environmental awareness. 
         
-        # Prepare request to Ollama API
-        payload = {
-            "model": "llama2",
-            "prompt": prompt,
-            "stream": False,
-            "max_tokens": 500
-        }
+        User question: {user_message}
         
-        logger.debug(f"Sending request to Ollama API: {payload}")
+        Please provide a helpful, informative response focused on sustainability and environmental topics.
+        Keep your response concise (about 150 words maximum).
+        """
         
         # Send request to Ollama API
-        response = requests.post(OLLAMA_API_URL, json=payload)
+        response = requests.post(
+            OLLAMA_API_URL,
+            json={
+                "model": "llama2",
+                "prompt": prompt,
+                "stream": False
+            }
+        )
         
         if response.status_code == 200:
-            # Extract the response text from Ollama
-            response_data = response.json()
-            bot_response = response_data.get('response', '')
-            logger.debug(f"Received response from Ollama: {bot_response[:50]}...")
-            
-            return jsonify({'response': bot_response})
+            result = response.json()
+            bot_response = result.get('response', 'Sorry, I could not generate a response.')
+            return jsonify({'success': True, 'response': bot_response})
         else:
             logger.error(f"Error from Ollama API: {response.text}")
-            return jsonify({'error': 'Failed to get response from chatbot'}), 500
-    
+            return jsonify({
+                'success': False, 
+                'error': f"Error communicating with Ollama API (Status: {response.status_code})"
+            })
+            
     except Exception as e:
-        logger.error(f"Error processing chat: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error processing chat message: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': f"Error processing your request: {str(e)}"
+        })
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors"""
+    return render_template('index.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    """Handle 500 errors"""
+    logger.error(f"Server error: {str(e)}")
+    return jsonify({'success': False, 'error': 'Internal server error'}), 500
