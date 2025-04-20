@@ -6,16 +6,16 @@ import random
 
 logger = logging.getLogger(__name__)
 
-# Ollama API endpoint - configurable via environment variables or use the one specified
-# The typical Ollama setup runs on localhost:11434, but we need to make it accessible from our Flask app
-OLLAMA_API_HOST = os.environ.get('OLLAMA_API_HOST', '0.0.0.0')  # Use 0.0.0.0 to allow connections from any IP
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger.setLevel(logging.DEBUG)
+
+# Ollama API endpoint - configurable via environment variables
+OLLAMA_API_HOST = os.environ.get('OLLAMA_API_HOST', 'localhost')
 OLLAMA_API_PORT = os.environ.get('OLLAMA_API_PORT', '11434')
 OLLAMA_API_URL = f"http://{OLLAMA_API_HOST}:{OLLAMA_API_PORT}/api/generate"
 
-# Alternate URL - uncomment if needed for testing directly from local Ollama
-# OLLAMA_API_URL = "http://localhost:11434/api/generate"
-
-logger.debug(f"Using Ollama API URL: {OLLAMA_API_URL}")
+logger.debug(f"Configured Ollama API URL: {OLLAMA_API_URL}")
 
 # Pre-defined sustainability tips and responses
 SUSTAINABILITY_TIPS = [
@@ -73,74 +73,66 @@ def get_chatbot_response(user_message):
     Returns:
         A response about sustainability
     """
-    # First, try to get a response from Ollama API (both localhost and typical Ollama endpoints)
-    for api_url in [OLLAMA_API_URL, "http://localhost:11434/api/generate"]:
-        try:
-            # Create a prompt focused on sustainability
-            prompt = f"""You are a helpful sustainability assistant focused on providing information about 
-            carbon footprints, climate change, and environmental topics. 
-            
-            User query: {user_message}
-            
-            Please provide an informative, accurate, and helpful response about this environmental topic.
-            Keep your answer concise, clear, and focused on sustainability.
-            """
-            
-            # Prepare the payload for Ollama API
-            payload = {
-                "model": "llama2",
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "top_k": 40
-                }
-            }
-            
-            logger.debug(f"Sending request to Ollama API at {api_url} with message: {user_message}")
-            
-            # Add headers for JSON content
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-            
-            # Make a request to the Ollama API with a shorter timeout
-            response = requests.post(api_url, json=payload, headers=headers, timeout=10)
-            
-            # Check if request was successful
-            if response.status_code == 200:
+    # Try to get a response from Ollama API
+    try:
+        # Create a prompt focused on sustainability
+        prompt = f"""You are a helpful sustainability assistant focused on providing information about 
+        carbon footprints, climate change, and environmental topics. 
+        
+        User query: {user_message}
+        
+        Please provide an informative, accurate, and helpful response about this environmental topic.
+        Keep your answer concise, clear, and focused on sustainability.
+        """
+        
+        # Prepare the payload for Ollama API
+        payload = {
+            "model": "llama2",
+            "prompt": prompt,
+            "stream": False
+        }
+        
+        logger.debug(f"Sending request to Ollama API at {OLLAMA_API_URL}")
+        
+        # Add headers for JSON content
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        
+        # Make a request to the Ollama API with a timeout
+        response = requests.post(OLLAMA_API_URL, json=payload, headers=headers, timeout=15)
+        
+        # Log the full response for debugging
+        logger.debug(f"Ollama API response status: {response.status_code}")
+        logger.debug(f"Ollama API response headers: {response.headers}")
+        
+        # Check if request was successful
+        if response.status_code == 200:
+            try:
                 response_data = response.json()
-                # Debug the full response structure
-                logger.debug(f"Full Ollama response: {response_data}")
+                logger.debug(f"Ollama response JSON: {json.dumps(response_data)[:200]}...")
                 
-                # Ollama's response format changed, checking both possible formats
+                # Extract the response based on the format
                 if 'response' in response_data:
                     bot_response = response_data.get('response', '')
-                    logger.debug(f"Received response from Ollama (format 1): {bot_response[:50]}...")
-                    return bot_response
-                elif 'message' in response_data:
-                    bot_response = response_data.get('message', {}).get('content', '')
-                    logger.debug(f"Received response from Ollama (format 2): {bot_response[:50]}...")
+                    logger.info(f"Successfully got Ollama response (format 1)")
                     return bot_response
                 else:
-                    logger.warning(f"Unknown Ollama response format: {response_data}")
-                    # Continue to next API URL or fallback
-            else:
-                logger.warning(f"Ollama API at {api_url} returned status code: {response.status_code}")
-                # Continue to next API URL or fallback
+                    logger.warning(f"Unknown Ollama response format: {list(response_data.keys())}")
+            except json.JSONDecodeError:
+                logger.error(f"Failed to parse JSON from Ollama response: {response.text[:200]}...")
+        else:
+            logger.warning(f"Ollama API returned non-200 status code: {response.status_code}")
+            logger.warning(f"Response content: {response.text[:200]}...")
                 
-        except requests.exceptions.RequestException as e:
-            logger.warning(f"Could not connect to Ollama API at {api_url}: {str(e)}")
-            # Continue to next API URL or fallback
-            
-        except Exception as e:
-            logger.warning(f"Error in Ollama response from {api_url}: {str(e)}")
-            # Continue to next API URL or fallback
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"Could not connect to Ollama API: {str(e)}")
+        
+    except Exception as e:
+        logger.warning(f"Error in Ollama API interaction: {str(e)}")
     
-    # If we reach here, all API attempts failed - log that we're switching to fallback responses
-    logger.info(f"All Ollama API connection attempts failed, using fallback response system for query: {user_message}")
+    # If we reach here, API attempts failed - log that we're switching to fallback responses
+    logger.info(f"Ollama API connection failed, using fallback response system for query: {user_message}")
     
     # Improved fallback response system with better natural language understanding
     user_message_lower = user_message.lower()
@@ -177,27 +169,26 @@ def get_chatbot_response(user_message):
     # Handle specific question types with appropriate responses
     if any(q in user_message_lower for q in ["what is", "how does", "why is", "can you explain"]):
         if any(topic in user_message_lower for topic in ["carbon footprint", "emissions", "greenhouse"]):
-            return f"I'm currently running without Llama2, but I can tell you that {random.choice(CARBON_FOOTPRINT_INFO)}"
+            return f"I couldn't connect to Llama2, but I can tell you that {random.choice(CARBON_FOOTPRINT_INFO)}"
         elif any(topic in user_message_lower for topic in ["climate change", "global warming", "sustainability"]):
-            return f"While I'm in offline mode, I can share that {random.choice(CLIMATE_CHANGE_FACTS)}"
+            return f"While I'm unable to access Llama2 right now, I can share that {random.choice(CLIMATE_CHANGE_FACTS)}"
     
     # More personalized general responses
     if "hello" in user_message_lower or "hi" in user_message_lower.split():
-        return "Hello! I'm your Eco-Assistant. While I'm running without Llama2 at the moment, I can still help with sustainability information. What would you like to know about reducing your environmental impact?"
+        return "Hello! I'm your Eco-Assistant. I'm having trouble connecting to Llama2 at the moment, but I can still help with sustainability information. What would you like to know about reducing your environmental impact?"
     
     if "thank" in user_message_lower:
-        return "You're welcome! I'm happy to help with sustainability topics, even in offline mode. Feel free to ask more questions!"
+        return "You're welcome! I'm happy to help with sustainability topics. Feel free to ask more questions!"
     
     if len(user_message_lower) < 10:
         return "I need a bit more information to help you. Could you please ask a more specific question about sustainability, carbon footprints, or climate change?"
     
     # Enhanced general fallback responses
     general_responses = [
-        f"I'm currently operating without Llama2, but I can share this sustainability tip: {random.choice(SUSTAINABILITY_TIPS)}",
-        f"While I don't have Llama2 available right now, here's an interesting fact about climate change: {random.choice(CLIMATE_CHANGE_FACTS)}",
-        f"I'm currently in offline mode, but did you know this about carbon footprints? {random.choice(CARBON_FOOTPRINT_INFO)}",
-        "I'm operating with limited capabilities at the moment since Llama2 isn't available. I can provide basic information about sustainability, carbon footprints, and climate change. What specific area are you interested in?",
-        f"Though I'm not connected to Llama2 right now, I can tell you that {random.choice(SUSTAINABILITY_TIPS)}",
-        "The Llama2 model isn't available currently, but I'm still here to help with pre-defined information about sustainability. Please try asking about specific topics like carbon footprints, climate change, or sustainability tips."
+        f"I couldn't connect to Llama2, but I can share this sustainability tip: {random.choice(SUSTAINABILITY_TIPS)}",
+        f"While I'm having trouble accessing Llama2, here's an interesting fact about climate change: {random.choice(CLIMATE_CHANGE_FACTS)}",
+        f"I'm currently unable to use Llama2, but did you know this about carbon footprints? {random.choice(CARBON_FOOTPRINT_INFO)}",
+        "I'm having trouble connecting to Llama2 at the moment. I can provide basic information about sustainability, carbon footprints, and climate change. What specific area are you interested in?",
+        f"Though I can't access Llama2 right now, I can tell you that {random.choice(SUSTAINABILITY_TIPS)}"
     ]
     return random.choice(general_responses)

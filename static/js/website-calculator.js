@@ -108,10 +108,10 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
             
             // Show loader, hide results and error
-            websiteEmpty.classList.add('hidden');
-            websiteResults.classList.add('hidden');
-            websiteLoader.classList.remove('hidden');
-            websiteError.classList.add('hidden');
+            websiteEmpty.style.display = 'none';
+            websiteResults.style.display = 'none';
+            websiteLoader.style.display = 'block';
+            websiteError.style.display = 'none';
             
             // Get form values
             const websiteUrl = document.getElementById('website_url').value;
