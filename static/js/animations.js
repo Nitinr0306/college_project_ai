@@ -9,6 +9,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Tab switching functionality - added here for reliability
+    const personalTab = document.getElementById('personal-tab');
+    const websiteTab = document.getElementById('website-tab');
+    const personalCalculator = document.getElementById('personal-calculator');
+    const websiteCalculator = document.getElementById('website-calculator');
+    
+    console.log("Checking for calculator tabs in animations.js...");
+    console.log("Elements found:", !!personalTab, !!websiteTab, !!personalCalculator, !!websiteCalculator);
+    
+    if (personalTab && websiteTab && personalCalculator && websiteCalculator) {
+        console.log("Setting up calculator tabs in animations.js");
+        
+        // Fix display style
+        personalCalculator.style.display = 'block';
+        websiteCalculator.style.display = 'none';
+        
+        // Switch to personal calculator
+        personalTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Showing personal calculator");
+            personalCalculator.style.display = 'block';
+            websiteCalculator.style.display = 'none';
+            
+            personalTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+            personalTab.classList.remove('text-gray-500');
+            websiteTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+            websiteTab.classList.add('text-gray-500');
+        });
+        
+        // Switch to website calculator
+        websiteTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Showing website calculator");
+            personalCalculator.style.display = 'none';
+            websiteCalculator.style.display = 'block';
+            
+            websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+            websiteTab.classList.remove('text-gray-500');
+            personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+            personalTab.classList.add('text-gray-500');
+        });
+        
+        // Make function globally available
+        window.showWebsiteCalculator = function() {
+            console.log("Showing website calculator via global function");
+            personalCalculator.style.display = 'none';
+            websiteCalculator.style.display = 'block';
+            
+            websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+            websiteTab.classList.remove('text-gray-500');
+            personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+            personalTab.classList.add('text-gray-500');
+        };
+    } else {
+        console.error("Could not find calculator tabs or content elements");
+    }
+    
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
