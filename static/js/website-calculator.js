@@ -10,39 +10,54 @@ function setupCalculatorTabs() {
     console.log('Tabs found:', !!personalTab, !!websiteTab);
     console.log('Calculators found:', !!personalCalculator, !!websiteCalculator);
     
+    // Log initial display values for debugging
+    console.log('Initial display values:', 
+                'personalCalculator:', personalCalculator.style.display,
+                'websiteCalculator:', websiteCalculator.style.display);
+    
     // Make sure all elements exist before adding event handlers
     if (personalTab && websiteTab && personalCalculator && websiteCalculator) {
         console.log('Initializing calculator tabs');
         
         // Function to switch to personal calculator
         function showPersonalCalculator() {
-            console.log('Switching to personal calculator tab');
-            // Show personal calculator, hide website calculator
-            personalCalculator.classList.remove('hidden');
-            websiteCalculator.classList.add('hidden');
+            // Show personal calculator, hide website calculator with direct style changes
+            personalCalculator.style.display = 'block';
+            websiteCalculator.style.display = 'none';
+            
+            console.log('Personal calculator activated:', 
+                        personalCalculator.style.display,
+                        websiteCalculator.style.display);
             
             // Update tab styles
             personalTab.classList.add('border-b-2', 'border-primary', 'text-primary');
             personalTab.classList.remove('text-gray-500');
             websiteTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
             websiteTab.classList.add('text-gray-500');
+            
+            console.log('Switching to personal calculator tab');
         }
         
         // Function to switch to website calculator
         function showWebsiteCalculator() {
-            console.log('Switching to website calculator tab');
-            // Show website calculator, hide personal calculator
-            websiteCalculator.classList.remove('hidden');
-            personalCalculator.classList.add('hidden');
+            // Show website calculator, hide personal calculator with direct style changes
+            personalCalculator.style.display = 'none';
+            websiteCalculator.style.display = 'block';
+            
+            console.log('Website calculator activated:', 
+                        personalCalculator.style.display,
+                        websiteCalculator.style.display);
             
             // Update tab styles
             websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
             websiteTab.classList.remove('text-gray-500');
             personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
             personalTab.classList.add('text-gray-500');
+            
+            console.log('Switching to website calculator tab');
         }
         
-        // Tab switching event listeners
+        // Tab switching event listeners with direct style manipulation
         personalTab.addEventListener('click', function(e) {
             e.preventDefault();
             showPersonalCalculator();
@@ -144,9 +159,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to display the website calculation results
     function displayWebsiteResults(result) {
-        // Hide loader, show results
-        websiteLoader.classList.add('hidden');
-        websiteResults.classList.remove('hidden');
+        // Hide loader and empty state
+        websiteLoader.style.display = 'none';
+        websiteEmpty.style.display = 'none';
+        websiteError.style.display = 'none';
+        
+        // Show results
+        websiteResults.style.display = 'block';
+        
+        console.log('Website calculation result:', result);
         
         // Update result text
         websiteSize.textContent = `${result.website_size_mb} MB`;
@@ -228,10 +249,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to show website error message
     function showWebsiteError(message) {
-        websiteLoader.classList.add('hidden');
-        websiteResults.classList.add('hidden');
-        websiteEmpty.classList.add('hidden');
-        websiteError.classList.remove('hidden');
+        websiteLoader.style.display = 'none';
+        websiteResults.style.display = 'none';
+        websiteEmpty.style.display = 'none';
+        websiteError.style.display = 'block';
         websiteErrorMessage.textContent = message;
     }
 });
