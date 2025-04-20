@@ -5,9 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalCalculator = document.getElementById('personal-calculator');
     const websiteCalculator = document.getElementById('website-calculator');
     
-    // Tab switching functionality
-    if (personalTab && websiteTab) {
-        personalTab.addEventListener('click', function() {
+    // Make sure all elements exist before adding event handlers
+    if (personalTab && websiteTab && personalCalculator && websiteCalculator) {
+        console.log('Initializing calculator tabs');
+        
+        // Tab switching functionality
+        personalTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Switching to personal calculator tab');
+            
             // Show personal calculator, hide website calculator
             personalCalculator.classList.remove('hidden');
             websiteCalculator.classList.add('hidden');
@@ -19,7 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
             websiteTab.classList.add('text-gray-500');
         });
         
-        websiteTab.addEventListener('click', function() {
+        websiteTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Switching to website calculator tab');
+            
             // Show website calculator, hide personal calculator
             websiteCalculator.classList.remove('hidden');
             personalCalculator.classList.add('hidden');
@@ -30,6 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
             personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
             personalTab.classList.add('text-gray-500');
         });
+    } else {
+        console.error('Calculator tab elements not found');
     }
     
     // Get the website calculator form and results elements

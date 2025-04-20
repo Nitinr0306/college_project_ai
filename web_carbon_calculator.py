@@ -1,7 +1,8 @@
 import logging
 import requests
-import trafilatura
+import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ def get_website_size(url):
 
 def extract_website_text(url):
     """
-    Extract the text content of a website using trafilatura
+    Extract the text content of a website using BeautifulSoup
     
     Args:
         url: URL of the website to analyze
@@ -69,17 +70,44 @@ def extract_website_text(url):
         if not urlparse(url).scheme:
             url = 'http://' + url
             
-        # Fetch and extract the text content
-        downloaded = trafilatura.fetch_url(url)
-        if downloaded:
-            text = trafilatura.extract(downloaded)
-            return text or "No text content could be extracted from this website."
+        # Fetch the website with a user agent
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, timeout=10, headers=headers)
+        response.raise_for_status()
+        
+        # Parse the HTML
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Remove non-content elements
+        for element in soup(['script', 'style', 'header', 'footer', 'nav', 'aside']):
+            element.decompose()
+            
+        # Get text and clean it up
+        text = soup.get_text(separator=' ')
+        
+        # Clean up whitespace
+        lines = (line.strip() for line in text.splitlines())
+        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+        text = '\n'.join(chunk for chunk in chunks if chunk)
+        
+        # Remove excess whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        # Get a preview of the text
+        if text:
+            # Take first 500 characters as preview
+            preview = text[:500]
+            if len(text) > 500:
+                preview += "..."
+            return preview
         else:
-            return "Could not fetch website content."
+            return "No text content could be extracted from this website."
             
     except Exception as e:
         logger.error(f"Error extracting website text: {str(e)}")
-        return "Error extracting website content."
+        return f"Error extracting website content: {str(e)}"
 
 def calculate_website_carbon_footprint(url, monthly_views=None):
     """

@@ -10,10 +10,14 @@
     <section class="bg-gradient-to-r from-green-500 to-blue-500 text-white py-16 animate-fade-in">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">Track Your Environmental Impact</h1>
-            <p class="text-xl md:text-2xl mb-8">Calculate your carbon footprint and get personalized sustainability advice</p>
+            <p class="text-xl md:text-2xl mb-6">Calculate carbon footprints for individuals and websites</p>
+            <p class="text-lg md:text-xl mb-8">Get personalized sustainability advice from our eco-assistant</p>
             <div class="flex flex-col md:flex-row justify-center gap-4">
                 <a href="#calculator" class="bg-white text-green-600 hover:bg-green-100 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
                     <i class="fas fa-calculator mr-2"></i>Calculate Now
+                </a>
+                <a href="#website-tab" onclick="document.getElementById('website-tab').click();" class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
+                    <i class="fas fa-globe mr-2"></i>Analyze Website
                 </a>
                 <a href="#chatbot" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
                     <i class="fas fa-robot mr-2"></i>Ask Eco-Assistant
@@ -329,7 +333,7 @@
                 <p class="text-gray-600 max-w-2xl mx-auto">Our mission is to help individuals understand and reduce their environmental impact through education and practical tools.</p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
                 <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
                     <div class="text-primary text-4xl mb-4">
                         <i class="fas fa-leaf"></i>
@@ -343,7 +347,15 @@
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2 text-gray-800">Data-Driven Insights</h3>
-                    <p class="text-gray-600">Our calculator uses scientific conversion factors to provide accurate estimates of your carbon footprint.</p>
+                    <p class="text-gray-600">Our calculators use scientific conversion factors to provide accurate estimates of your carbon footprint.</p>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                    <div class="text-primary text-4xl mb-4">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">Website Analysis</h3>
+                    <p class="text-gray-600">Our website carbon calculator analyzes the environmental impact of any website based on its size and traffic.</p>
                 </div>
                 
                 <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
@@ -351,7 +363,7 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2 text-gray-800">AI-Powered Assistance</h3>
-                    <p class="text-gray-600">Get personalized advice and answers to your sustainability questions from our Llama2-powered chatbot.</p>
+                    <p class="text-gray-600">Get personalized advice and answers to your sustainability questions from our eco-friendly chatbot.</p>
                 </div>
             </div>
         </div>
