@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTracker - Carbon Footprint Calculator & Sustainability Assistant</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            light: '#4ADE80',
+                            DEFAULT: '#22C55E',
+                            dark: '#16A34A',
+                        },
+                        secondary: {
+                            light: '#93C5FD',
+                            DEFAULT: '#3B82F6',
+                            dark: '#2563EB',
+                        },
+                        neutral: {
+                            light: '#F3F4F6',
+                            DEFAULT: '#E5E7EB',
+                            dark: '#4B5563',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <header class="bg-primary shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-leaf text-white text-2xl mr-3"></i>
+                <h1 class="text-white text-xl md:text-2xl font-bold">EcoTracker</h1>
+            </div>
+            <nav class="hidden md:block">
+                <ul class="flex space-x-6 text-white">
+                    <li><a href="#calculator" class="hover:text-green-200 transition-colors">Calculator</a></li>
+                    <li><a href="#chatbot" class="hover:text-green-200 transition-colors">Eco-Assistant</a></li>
+                    <li><a href="#about" class="hover:text-green-200 transition-colors">About</a></li>
+                </ul>
+            </nav>
+            <button class="md:hidden text-white" id="mobile-menu-button">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden bg-primary-dark md:hidden">
+            <ul class="px-4 py-2 space-y-2 text-white">
+                <li><a href="#calculator" class="block py-2 hover:text-green-200 transition-colors">Calculator</a></li>
+                <li><a href="#chatbot" class="block py-2 hover:text-green-200 transition-colors">Eco-Assistant</a></li>
+                <li><a href="#about" class="block py-2 hover:text-green-200 transition-colors">About</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="flex items-center">
+                        <i class="fas fa-leaf text-primary-light mr-2"></i>
+                        <span class="font-bold">EcoTracker</span> - Making sustainability measurable
+                    </p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            <div class="mt-4 text-center text-sm text-gray-400">
+                <p>© 2023 EcoTracker. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

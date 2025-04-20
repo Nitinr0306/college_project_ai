@@ -1,263 +1,173 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get DOM elements
-    const footprintForm = document.getElementById('footprint-form');
-    const resultsSection = document.getElementById('results-section');
-    const dailyFootprintEl = document.getElementById('daily-footprint');
-    const annualFootprintEl = document.getElementById('annual-footprint');
-    const electricityFootprintEl = document.getElementById('electricity-footprint');
-    const transportationFootprintEl = document.getElementById('transportation-footprint');
-    const dietFootprintEl = document.getElementById('diet-footprint');
-    const tipsList = document.getElementById('tips-list');
+    // Get the calculator form and results elements
+    const calculatorForm = document.getElementById('carbon-calculator-form');
+    const calculatorResults = document.getElementById('calculator-results');
+    const calculatorEmpty = document.getElementById('calculator-empty');
+    const calculatorLoader = document.getElementById('calculator-loader');
+    const calculatorError = document.getElementById('calculator-error');
+    const errorMessage = document.getElementById('error-message');
     
-    // Chart element and instance
-    const chartCanvas = document.getElementById('footprint-chart');
+    // Get the result display elements
+    const totalResult = document.getElementById('total-result');
+    const totalProgress = document.getElementById('total-progress');
+    const electricityResult = document.getElementById('electricity-result');
+    const transportResult = document.getElementById('transport-result');
+    const dietResult = document.getElementById('diet-result');
+    
+    // Chart for visualization
     let footprintChart = null;
     
-    // Diet card selection styling
-    const dietOptions = document.querySelectorAll('.diet-option input');
-    dietOptions.forEach(option => {
-        option.addEventListener('change', function() {
-            dietOptions.forEach(opt => {
-                const card = opt.nextElementSibling;
-                if (opt.checked) {
-                    card.classList.add('border-primary-500', 'bg-primary-50');
-                } else {
-                    card.classList.remove('border-primary-500', 'bg-primary-50');
-                }
-            });
-        });
-    });
-    
-    // Form submission handler
-    footprintForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Handle form submission
+    calculatorForm.addEventListener('submit', function(event) {
+        event.preventDefault();
         
-        // Show loading state
-        const submitButton = footprintForm.querySelector('button[type="submit"]');
-        const originalButtonText = submitButton.innerHTML;
-        submitButton.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Calculating...';
-        submitButton.disabled = true;
+        // Show loader, hide results and error
+        calculatorEmpty.classList.add('hidden');
+        calculatorResults.classList.add('hidden');
+        calculatorLoader.classList.remove('hidden');
+        calculatorError.classList.add('hidden');
         
-        // Get form data
+        // Get form values
         const electricity = parseFloat(document.getElementById('electricity').value) || 0;
-        const transportationType = document.getElementById('transportation-type').value;
+        const transportType = document.getElementById('transport_type').value;
         const distance = parseFloat(document.getElementById('distance').value) || 0;
-        const distanceUnit = document.getElementById('distance-unit').value;
+        const diet = document.getElementById('diet').value;
         
-        // Get selected diet
-        let diet = '';
-        dietOptions.forEach(option => {
-            if (option.checked) {
-                diet = option.value;
-            }
-        });
-        
-        // Convert miles to kilometers if needed
-        let distanceInKm = distance;
-        if (distanceUnit === 'miles') {
-            distanceInKm = distance * 1.60934;
+        // Validate inputs
+        if (!transportType || !diet) {
+            showError('Please select both transportation type and diet preference.');
+            return;
         }
         
-        // Prepare data for the API
-        const formData = {
-            electricity: electricity / 30, // Convert monthly to daily
-            transportationType: transportationType,
-            distance: distanceInKm,
+        // Prepare data for API call
+        const data = {
+            electricity: electricity,
+            transport_type: transportType,
+            distance: distance,
             diet: diet
         };
         
-        // Send data to the server
+        // Call the backend API
         fetch('/calculate', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(data)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                // Update the results
-                displayResults(data);
-                
-                // Show the results section
-                resultsSection.classList.remove('hidden');
-                
-                // Scroll to results
-                resultsSection.scrollIntoView({ behavior: 'smooth' });
+                displayResults(data.result);
             } else {
-                // Handle error
-                alert('Error calculating footprint: ' + data.error);
+                showError(data.error || 'An unknown error occurred.');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while calculating your footprint.');
-        })
-        .finally(() => {
-            // Reset button state
-            submitButton.innerHTML = originalButtonText;
-            submitButton.disabled = false;
+            showError('Failed to calculate carbon footprint. Please try again.');
         });
     });
     
-    // Function to display results
-    function displayResults(data) {
-        // Update result elements
-        dailyFootprintEl.textContent = data.totalFootprint;
-        annualFootprintEl.textContent = data.annualFootprint;
+    // Function to display the calculation results
+    function displayResults(result) {
+        // Hide loader, show results
+        calculatorLoader.classList.add('hidden');
+        calculatorResults.classList.remove('hidden');
         
-        // Update breakdown
-        electricityFootprintEl.textContent = `${data.breakdown.electricity} kg CO2e`;
-        transportationFootprintEl.textContent = `${data.breakdown.transportation} kg CO2e`;
-        dietFootprintEl.textContent = `${data.breakdown.diet} kg CO2e`;
+        // Update result text
+        totalResult.textContent = `${result.total} kg CO2e`;
+        electricityResult.textContent = `${result.electricity} kg CO2e`;
+        transportResult.textContent = `${result.transport} kg CO2e`;
+        dietResult.textContent = `${result.diet} kg CO2e`;
         
-        // Generate and display tips
-        generateTips(data.totalFootprint);
+        // Update progress bar (assuming a scale of 0-20 kg CO2e)
+        const percentage = Math.min(100, (result.total / 20) * 100);
+        totalProgress.style.width = `${percentage}%`;
         
-        // Create or update chart
-        createOrUpdateChart(data.breakdown);
-        
-        // Add animation to the numbers
-        animateNumbers();
-    }
-    
-    // Function to generate tips based on footprint size
-    function generateTips(footprint) {
-        // Clear existing tips
-        tipsList.innerHTML = '';
-        
-        // Get tips based on footprint size
-        const tips = getTips(footprint);
-        
-        // Add tips to the list
-        tips.forEach(tip => {
-            const li = document.createElement('li');
-            li.className = 'flex items-start';
-            li.innerHTML = `
-                <i class="fas fa-check-circle text-primary-500 mt-1 mr-2"></i>
-                <span>${tip}</span>
-            `;
-            tipsList.appendChild(li);
-        });
-    }
-    
-    // Function to get tips based on footprint size
-    function getTips(footprint) {
-        // General tips for everyone
-        const generalTips = [
-            "Use LED bulbs which use up to 85% less energy than traditional bulbs",
-            "Turn off lights and unplug electronics when not in use",
-            "Reduce water usage with shorter showers and fixing leaks",
-            "Eat locally grown, seasonal food to reduce transportation emissions",
-            "Reduce food waste by planning meals and composting scraps"
-        ];
-        
-        // Additional tips based on footprint size
-        if (footprint > 20) {
-            return generalTips.concat([
-                "Consider renewable energy options for your home",
-                "Evaluate home insulation to reduce heating/cooling needs",
-                "Look into carbon offset programs for unavoidable emissions",
-                "Consider reducing air travel when possible"
-            ]);
-        } else if (footprint > 10) {
-            return generalTips.concat([
-                "Try to reduce meat consumption a few days per week",
-                "Use public transportation more frequently",
-                "Consider carpooling or ride-sharing options"
-            ]);
+        // Change progress bar color based on footprint size
+        if (result.total < 5) {
+            totalProgress.classList.remove('bg-yellow-500', 'bg-red-500');
+            totalProgress.classList.add('bg-primary');
+        } else if (result.total < 10) {
+            totalProgress.classList.remove('bg-primary', 'bg-red-500');
+            totalProgress.classList.add('bg-yellow-500');
         } else {
-            return generalTips.concat([
-                "Continue your great sustainability practices",
-                "Share your sustainability knowledge with friends and family"
-            ]);
+            totalProgress.classList.remove('bg-primary', 'bg-yellow-500');
+            totalProgress.classList.add('bg-red-500');
         }
+        
+        // Update or create the chart
+        updateChart(result);
+        
+        // Add a small animation effect
+        calculatorResults.classList.add('animate-fade-in');
+        setTimeout(() => {
+            calculatorResults.classList.remove('animate-fade-in');
+        }, 800);
     }
     
-    // Function to create or update the chart
-    function createOrUpdateChart(breakdown) {
-        // Prepare data for the chart
-        const chartData = {
-            labels: ['Electricity', 'Transportation', 'Diet'],
-            datasets: [{
-                data: [
-                    breakdown.electricity,
-                    breakdown.transportation,
-                    breakdown.diet
-                ],
-                backgroundColor: [
-                    'rgba(255, 205, 86, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(34, 197, 94, 0.6)'
-                ],
-                borderColor: [
-                    'rgb(255, 205, 86)',
-                    'rgb(54, 162, 235)',
-                    'rgb(34, 197, 94)'
-                ],
-                borderWidth: 1
-            }]
-        };
+    // Function to update the chart
+    function updateChart(result) {
+        const ctx = document.getElementById('footprint-chart').getContext('2d');
         
-        // If chart exists, destroy it
+        // Destroy existing chart if it exists
         if (footprintChart) {
             footprintChart.destroy();
         }
         
-        // Create new chart
-        footprintChart = new Chart(chartCanvas, {
-            type: 'pie',
-            data: chartData,
+        // Create a new chart
+        footprintChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Electricity', 'Transportation', 'Diet'],
+                datasets: [{
+                    data: [result.electricity, result.transport, result.diet],
+                    backgroundColor: [
+                        '#FBBF24', // yellow for electricity
+                        '#3B82F6', // blue for transportation
+                        '#EF4444'  // red for diet
+                    ],
+                    borderWidth: 0
+                }]
+            },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'bottom'
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} kg CO2e (${percentage}%)`;
+                                const value = context.raw;
+                                const percentage = Math.round((value / result.total) * 100);
+                                return `${context.label}: ${value} kg CO2e (${percentage}%)`;
                             }
                         }
                     }
+                },
+                cutout: '65%',
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
                 }
             }
         });
     }
     
-    // Function to animate numbers
-    function animateNumbers() {
-        const elements = [dailyFootprintEl, annualFootprintEl];
-        
-        elements.forEach(el => {
-            const finalValue = parseFloat(el.textContent);
-            
-            // Start from 0
-            let startValue = 0;
-            
-            // Calculate the increment per step
-            const incrementPerStep = finalValue / 50;
-            
-            // Set initial value
-            el.textContent = '0';
-            
-            // Animate
-            const counter = setInterval(() => {
-                startValue += incrementPerStep;
-                
-                if (startValue >= finalValue) {
-                    el.textContent = finalValue;
-                    clearInterval(counter);
-                } else {
-                    el.textContent = Math.round(startValue * 100) / 100;
-                }
-            }, 20);
-        });
+    // Function to show error message
+    function showError(message) {
+        calculatorLoader.classList.add('hidden');
+        calculatorResults.classList.add('hidden');
+        calculatorEmpty.classList.add('hidden');
+        calculatorError.classList.remove('hidden');
+        errorMessage.textContent = message;
     }
 });
