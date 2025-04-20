@@ -3,6 +3,7 @@ import requests
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+import trafilatura
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +56,49 @@ def get_website_size(url):
         # Return default page size if we can't determine the actual size
         return CARBON_FACTORS['default_page_size_mb']
 
+def get_website_text_content(url):
+    """
+    This function takes a URL and returns the main text content of the website
+    using trafilatura, which is better at extracting the main content.
+    
+    Args:
+        url: URL of the website to analyze
+        
+    Returns:
+        Text content of the website, or None if extraction failed
+    """
+    try:
+        # Make sure the URL has a scheme
+        if not urlparse(url).scheme:
+            url = 'http://' + url
+            
+        # Download the content
+        downloaded = trafilatura.fetch_url(url)
+        
+        if downloaded:
+            # Extract the text content
+            text = trafilatura.extract(downloaded)
+            
+            if text:
+                logger.debug(f"Successfully extracted text with Trafilatura from {url}")
+                # Get a preview of the text for the website carbon calculator
+                if len(text) > 500:
+                    preview = text[:500] + "..."
+                else:
+                    preview = text
+                return preview
+                
+        logger.warning(f"Trafilatura extraction returned empty for {url}")
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error using Trafilatura for {url}: {str(e)}")
+        return None
+
 def extract_website_text(url):
     """
-    Extract the text content of a website using BeautifulSoup
+    Extract the text content of a website using Trafilatura first,
+    then falling back to BeautifulSoup if needed
     
     Args:
         url: URL of the website to analyze
@@ -66,6 +107,16 @@ def extract_website_text(url):
         Text content of the website
     """
     try:
+        # First try using Trafilatura (better at extracting main content)
+        text = get_website_text_content(url)
+        
+        # If Trafilatura succeeded, return the extracted text
+        if text:
+            return text
+            
+        # Log fallback
+        logger.info(f"Falling back to BeautifulSoup for {url}")
+        
         # Make sure the URL has a scheme
         if not urlparse(url).scheme:
             url = 'http://' + url
