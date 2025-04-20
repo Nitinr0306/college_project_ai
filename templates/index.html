@@ -37,8 +37,14 @@
             <!-- Calculator Tabs -->
             <div class="max-w-4xl mx-auto mb-8">
                 <div class="flex border-b border-gray-200">
-                    <button id="personal-tab" class="py-2 px-4 font-medium bg-white border-b-2 border-primary text-primary">Personal Calculator</button>
-                    <button id="website-tab" class="py-2 px-4 font-medium text-gray-500 hover:text-gray-700">Website Calculator</button>
+                    <button id="personal-tab" class="py-2 px-4 font-medium bg-white border-b-2 border-primary text-primary" 
+                            onclick="document.getElementById('personal-calculator').style.display='block'; document.getElementById('website-calculator').style.display='none'; this.classList.add('border-b-2', 'border-primary', 'text-primary'); this.classList.remove('text-gray-500'); document.getElementById('website-tab').classList.remove('border-b-2', 'border-primary', 'text-primary'); document.getElementById('website-tab').classList.add('text-gray-500');">
+                        Personal Calculator
+                    </button>
+                    <button id="website-tab" class="py-2 px-4 font-medium text-gray-500 hover:text-gray-700"
+                            onclick="document.getElementById('website-calculator').style.display='block'; document.getElementById('personal-calculator').style.display='none'; this.classList.add('border-b-2', 'border-primary', 'text-primary'); this.classList.remove('text-gray-500'); document.getElementById('personal-tab').classList.remove('border-b-2', 'border-primary', 'text-primary'); document.getElementById('personal-tab').classList.add('text-gray-500');">
+                        Website Calculator
+                    </button>
                 </div>
             </div>
             
@@ -172,7 +178,7 @@
             </div>
             
             <!-- Website Calculator Section -->
-            <div id="website-calculator" class="max-w-4xl mx-auto" style="display: none;">
+            <div id="website-calculator" class="max-w-4xl mx-auto" style="display: none;" data-visibility="hidden">
                 <div class="bg-gray-50 rounded-lg shadow-lg overflow-hidden">
                     <div class="md:flex">
                         <!-- Website Calculator Form -->

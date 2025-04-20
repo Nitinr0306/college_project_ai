@@ -108,27 +108,65 @@ def get_chatbot_response(user_message):
         logger.warning(f"Error in Ollama response: {str(e)}")
         # Continue to fallback responses
     
-    # Fallback to pre-defined responses based on keywords in the user's message
+    # Log that we're switching to fallback responses
+    logger.info(f"Using fallback response system for query: {user_message}")
+    
+    # Improved fallback response system with better natural language understanding
     user_message_lower = user_message.lower()
     
-    # Check for tip-related queries
-    if any(word in user_message_lower for word in ['tip', 'idea', 'suggestion', 'how can i', 'how to', 'ways to']):
-        return f"Here's a sustainability tip you might find helpful: {random.choice(SUSTAINABILITY_TIPS)}"
+    # More comprehensive keyword mapping with prioritized matching
+    keywords_mapping = {
+        'tip': ('tips', SUSTAINABILITY_TIPS, "Here's a sustainability tip that might help: "),
+        'idea': ('tips', SUSTAINABILITY_TIPS, "Here's an eco-friendly idea to consider: "),
+        'suggestion': ('tips', SUSTAINABILITY_TIPS, "I'd suggest this sustainable practice: "),
+        'how can i': ('tips', SUSTAINABILITY_TIPS, "You can make a difference by: "),
+        'how to': ('tips', SUSTAINABILITY_TIPS, "Here's how you can help the environment: "),
+        'ways to': ('tips', SUSTAINABILITY_TIPS, "One effective way to be more sustainable is: "),
+        'reduce': ('tips', SUSTAINABILITY_TIPS, "To reduce your environmental impact, try this: "),
+        
+        'carbon': ('footprint', CARBON_FOOTPRINT_INFO, "Regarding carbon footprints: "),
+        'footprint': ('footprint', CARBON_FOOTPRINT_INFO, "Here's an important fact about carbon footprints: "),
+        'emission': ('footprint', CARBON_FOOTPRINT_INFO, "About emissions and their impact: "),
+        'co2': ('footprint', CARBON_FOOTPRINT_INFO, "Did you know this about CO2 and carbon footprints? "),
+        'greenhouse': ('footprint', CARBON_FOOTPRINT_INFO, "About greenhouse gases: "),
+        
+        'climate': ('climate', CLIMATE_CHANGE_FACTS, "About climate change: "),
+        'global warming': ('climate', CLIMATE_CHANGE_FACTS, "Regarding global warming: "),
+        'weather': ('climate', CLIMATE_CHANGE_FACTS, "Climate change is affecting weather patterns: "),
+        'temperature': ('climate', CLIMATE_CHANGE_FACTS, "Temperature changes and climate facts: "),
+        'sea level': ('climate', CLIMATE_CHANGE_FACTS, "Concerning sea level rise: "),
+        'extreme': ('climate', CLIMATE_CHANGE_FACTS, "About extreme weather and climate change: ")
+    }
     
-    # Check for carbon footprint queries
-    elif any(word in user_message_lower for word in ['carbon', 'footprint', 'emission', 'co2']):
-        return f"Regarding carbon footprints: {random.choice(CARBON_FOOTPRINT_INFO)}"
+    # First look for exact matches in the mapping
+    for keyword, (category, responses, prefix) in keywords_mapping.items():
+        if keyword in user_message_lower:
+            return f"{prefix}{random.choice(responses)}"
     
-    # Check for climate change queries
-    elif any(word in user_message_lower for word in ['climate', 'global warming', 'weather', 'temperature']):
-        return f"About climate change: {random.choice(CLIMATE_CHANGE_FACTS)}"
+    # Handle specific question types with appropriate responses
+    if any(q in user_message_lower for q in ["what is", "how does", "why is", "can you explain"]):
+        if any(topic in user_message_lower for topic in ["carbon footprint", "emissions", "greenhouse"]):
+            return f"I'm currently running without Llama2, but I can tell you that {random.choice(CARBON_FOOTPRINT_INFO)}"
+        elif any(topic in user_message_lower for topic in ["climate change", "global warming", "sustainability"]):
+            return f"While I'm in offline mode, I can share that {random.choice(CLIMATE_CHANGE_FACTS)}"
     
-    # General fallback response
-    else:
-        general_responses = [
-            f"As a sustainability assistant, I'd like to share this tip: {random.choice(SUSTAINABILITY_TIPS)}",
-            f"While I don't have a specific answer to that, here's an interesting fact about climate change: {random.choice(CLIMATE_CHANGE_FACTS)}",
-            f"I'm not sure about that specific question, but did you know? {random.choice(CARBON_FOOTPRINT_INFO)}",
-            "I'm currently running in offline mode. For more specific information, please try again later when the Llama2 model is available."
-        ]
-        return random.choice(general_responses)
+    # More personalized general responses
+    if "hello" in user_message_lower or "hi" in user_message_lower.split():
+        return "Hello! I'm your Eco-Assistant. While I'm running without Llama2 at the moment, I can still help with sustainability information. What would you like to know about reducing your environmental impact?"
+    
+    if "thank" in user_message_lower:
+        return "You're welcome! I'm happy to help with sustainability topics, even in offline mode. Feel free to ask more questions!"
+    
+    if len(user_message_lower) < 10:
+        return "I need a bit more information to help you. Could you please ask a more specific question about sustainability, carbon footprints, or climate change?"
+    
+    # Enhanced general fallback responses
+    general_responses = [
+        f"I'm currently operating without Llama2, but I can share this sustainability tip: {random.choice(SUSTAINABILITY_TIPS)}",
+        f"While I don't have Llama2 available right now, here's an interesting fact about climate change: {random.choice(CLIMATE_CHANGE_FACTS)}",
+        f"I'm currently in offline mode, but did you know this about carbon footprints? {random.choice(CARBON_FOOTPRINT_INFO)}",
+        "I'm operating with limited capabilities at the moment since Llama2 isn't available. I can provide basic information about sustainability, carbon footprints, and climate change. What specific area are you interested in?",
+        f"Though I'm not connected to Llama2 right now, I can tell you that {random.choice(SUSTAINABILITY_TIPS)}",
+        "The Llama2 model isn't available currently, but I'm still here to help with pre-defined information about sustainability. Please try asking about specific topics like carbon footprints, climate change, or sustainability tips."
+    ]
+    return random.choice(general_responses)

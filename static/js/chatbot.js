@@ -24,8 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading indicator
         chatStatus.classList.remove('hidden');
         
-        // Call the backend API
-        fetch('/chat', {
+        // Set a reasonable timeout for the request
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timed out')), 15000)
+        );
+        
+        // Create the fetch request
+        const fetchPromise = fetch('/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -33,38 +38,57 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 message: userMessage
             })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Hide loading indicator
-            chatStatus.classList.add('hidden');
-            
-            if (data.success) {
-                // Add bot response to chat
-                addMessageToChat('bot', data.response);
-            } else {
-                // Show error message
-                addMessageToChat('bot', 'Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
-            }
-            
-            // Scroll to the bottom of the chat
-            scrollToBottom();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Hide loading indicator
-            chatStatus.classList.add('hidden');
-            
-            // Show error message
-            addMessageToChat('bot', 'Sorry, I encountered a technical issue. Please try again later.');
-            scrollToBottom();
         });
+        
+        // Race between fetch and timeout
+        Promise.race([fetchPromise, timeoutPromise])
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading indicator
+                chatStatus.classList.add('hidden');
+                
+                if (data.success) {
+                    // Log successful response
+                    console.log("Chatbot response received:", data.response.substring(0, 50) + "...");
+                    
+                    // Add bot response to chat
+                    addMessageToChat('bot', data.response);
+                } else {
+                    console.error("API error:", data.error);
+                    
+                    // Show error message
+                    addMessageToChat('bot', 'Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+                }
+                
+                // Scroll to the bottom of the chat
+                scrollToBottom();
+            })
+            .catch(error => {
+                console.error('Error with chat request:', error);
+                
+                // Hide loading indicator
+                chatStatus.classList.add('hidden');
+                
+                // Create a more helpful message based on the error
+                let errorMessage = 'I\'m having trouble connecting to my knowledge base right now. ';
+                
+                if (error.message.includes('timed out')) {
+                    errorMessage += 'The request took too long to process. I\'m running in offline mode with pre-defined sustainability tips.';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+                    errorMessage += 'There seems to be a network issue. I\'ll provide some sustainability tips instead.';
+                } else {
+                    errorMessage += 'Here\'s a sustainability tip while I recover: Reduce, reuse, and recycle to minimize your environmental impact.';
+                }
+                
+                // Show error message
+                addMessageToChat('bot', errorMessage);
+                scrollToBottom();
+            });
     });
     
     // Function to add a message to the chat

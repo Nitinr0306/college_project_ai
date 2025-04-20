@@ -21,47 +21,76 @@ document.addEventListener('DOMContentLoaded', function() {
     if (personalTab && websiteTab && personalCalculator && websiteCalculator) {
         console.log("Setting up calculator tabs in animations.js");
         
-        // Fix display style
+        // Force remove hidden class and set display style directly
+        personalCalculator.classList.remove('hidden');
+        websiteCalculator.classList.remove('hidden');
         personalCalculator.style.display = 'block';
         websiteCalculator.style.display = 'none';
         
+        // Debug display values
+        console.log("Initial display values:", 
+            "personalCalculator:", getComputedStyle(personalCalculator).display,
+            "websiteCalculator:", getComputedStyle(websiteCalculator).display
+        );
+        
         // Switch to personal calculator
-        personalTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log("Showing personal calculator");
+        function activatePersonalCalculator() {
+            // Force style and remove all hidden classes
+            websiteCalculator.classList.remove('hidden');
+            personalCalculator.classList.remove('hidden');
             personalCalculator.style.display = 'block';
             websiteCalculator.style.display = 'none';
             
+            // Update tab classes
             personalTab.classList.add('border-b-2', 'border-primary', 'text-primary');
             personalTab.classList.remove('text-gray-500');
             websiteTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
             websiteTab.classList.add('text-gray-500');
-        });
+            
+            console.log("Personal calculator activated:", 
+                getComputedStyle(personalCalculator).display,
+                getComputedStyle(websiteCalculator).display
+            );
+        }
         
         // Switch to website calculator
-        websiteTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log("Showing website calculator");
+        function activateWebsiteCalculator() {
+            // Force style and remove all hidden classes
+            websiteCalculator.classList.remove('hidden');
+            personalCalculator.classList.remove('hidden');
             personalCalculator.style.display = 'none';
             websiteCalculator.style.display = 'block';
             
+            // Update tab classes
             websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
             websiteTab.classList.remove('text-gray-500');
             personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
             personalTab.classList.add('text-gray-500');
+            
+            console.log("Website calculator activated:",
+                getComputedStyle(personalCalculator).display,
+                getComputedStyle(websiteCalculator).display
+            );
+        }
+        
+        // Add click listeners
+        personalTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            activatePersonalCalculator();
+        });
+        
+        websiteTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            activateWebsiteCalculator();
         });
         
         // Make function globally available
-        window.showWebsiteCalculator = function() {
-            console.log("Showing website calculator via global function");
-            personalCalculator.style.display = 'none';
-            websiteCalculator.style.display = 'block';
-            
-            websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-            websiteTab.classList.remove('text-gray-500');
-            personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-            personalTab.classList.add('text-gray-500');
-        };
+        window.showWebsiteCalculator = activateWebsiteCalculator;
+        
+        // Check URL hash on page load
+        if (window.location.hash === '#website-calculator') {
+            setTimeout(activateWebsiteCalculator, 100);
+        }
     } else {
         console.error("Could not find calculator tabs or content elements");
     }
