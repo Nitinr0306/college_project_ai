@@ -1,11 +1,17 @@
 import json
 import requests
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 # Ollama API endpoint - assuming it's running locally by default
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
+# If OLLAMA_API_HOST is set in environment, use that instead
+OLLAMA_API_HOST = os.environ.get('OLLAMA_API_HOST', 'localhost')
+OLLAMA_API_PORT = os.environ.get('OLLAMA_API_PORT', '11434')
+OLLAMA_API_URL = f"http://{OLLAMA_API_HOST}:{OLLAMA_API_PORT}/api/generate"
+
+logger.debug(f"Using Ollama API URL: {OLLAMA_API_URL}")
 
 def get_chatbot_response(user_message):
     """

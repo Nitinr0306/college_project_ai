@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask, render_template, request, jsonify
 from carbon_calculator import calculate_carbon_footprint
+from web_carbon_calculator import calculate_website_carbon_footprint, extract_website_text
 from chatbot import get_chatbot_response
 
 # Create the Flask application
@@ -39,6 +40,42 @@ def calculate():
         })
     except Exception as e:
         logger.error(f"Error in calculation: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+        
+@app.route('/calculate-website', methods=['POST'])
+def calculate_website():
+    """API endpoint for website carbon footprint calculation"""
+    try:
+        data = request.json
+        
+        # Extract form data
+        website_url = data.get('website_url', '')
+        monthly_views = int(data.get('monthly_views', 0))
+        
+        if not website_url:
+            return jsonify({
+                "success": False,
+                "error": "Please enter a website URL"
+            }), 400
+        
+        # Calculate website carbon footprint
+        result = calculate_website_carbon_footprint(website_url, monthly_views)
+        
+        # Get website text content for summary (optional)
+        website_text = extract_website_text(website_url)
+        
+        result['website_text_preview'] = website_text[:200] + '...' if website_text and len(website_text) > 200 else website_text
+        
+        logger.debug(f"Website calculation result: {result}")
+        return jsonify({
+            "success": True,
+            "result": result
+        })
+    except Exception as e:
+        logger.error(f"Error in website calculation: {str(e)}")
         return jsonify({
             "success": False,
             "error": str(e)
