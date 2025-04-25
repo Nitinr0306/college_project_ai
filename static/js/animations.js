@@ -9,92 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Tab switching functionality - added here for reliability
-    const personalTab = document.getElementById('personal-tab');
-    const websiteTab = document.getElementById('website-tab');
-    const personalCalculator = document.getElementById('personal-calculator');
-    const websiteCalculator = document.getElementById('website-calculator');
-    
-    console.log("Checking for calculator tabs in animations.js...");
-    console.log("Elements found:", !!personalTab, !!websiteTab, !!personalCalculator, !!websiteCalculator);
-    
-    if (personalTab && websiteTab && personalCalculator && websiteCalculator) {
-        console.log("Setting up calculator tabs in animations.js");
-        
-        // Force remove hidden class and set display style directly
-        personalCalculator.classList.remove('hidden');
-        websiteCalculator.classList.remove('hidden');
-        personalCalculator.style.display = 'block';
-        websiteCalculator.style.display = 'none';
-        
-        // Debug display values
-        console.log("Initial display values:", 
-            "personalCalculator:", getComputedStyle(personalCalculator).display,
-            "websiteCalculator:", getComputedStyle(websiteCalculator).display
-        );
-        
-        // Switch to personal calculator
-        function activatePersonalCalculator() {
-            // Force style and remove all hidden classes
-            websiteCalculator.classList.remove('hidden');
-            personalCalculator.classList.remove('hidden');
-            personalCalculator.style.display = 'block';
-            websiteCalculator.style.display = 'none';
-            
-            // Update tab classes
-            personalTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-            personalTab.classList.remove('text-gray-500');
-            websiteTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-            websiteTab.classList.add('text-gray-500');
-            
-            console.log("Personal calculator activated:", 
-                getComputedStyle(personalCalculator).display,
-                getComputedStyle(websiteCalculator).display
-            );
-        }
-        
-        // Switch to website calculator
-        function activateWebsiteCalculator() {
-            // Force style and remove all hidden classes
-            websiteCalculator.classList.remove('hidden');
-            personalCalculator.classList.remove('hidden');
-            personalCalculator.style.display = 'none';
-            websiteCalculator.style.display = 'block';
-            
-            // Update tab classes
-            websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-            websiteTab.classList.remove('text-gray-500');
-            personalTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-            personalTab.classList.add('text-gray-500');
-            
-            console.log("Website calculator activated:",
-                getComputedStyle(personalCalculator).display,
-                getComputedStyle(websiteCalculator).display
-            );
-        }
-        
-        // Add click listeners
-        personalTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            activatePersonalCalculator();
-        });
-        
-        websiteTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            activateWebsiteCalculator();
-        });
-        
-        // Make function globally available
-        window.showWebsiteCalculator = activateWebsiteCalculator;
-        
-        // Check URL hash on page load
-        if (window.location.hash === '#website-calculator') {
-            setTimeout(activateWebsiteCalculator, 100);
-        }
-    } else {
-        console.error("Could not find calculator tabs or content elements");
-    }
-    
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
@@ -176,3 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// All tab-switching and calculator visibility logic has been removed from this file to avoid conflicts with website-calculator.js.
+// You can keep animation-only functions here, but do NOT manipulate the calculator tabs or sections in this file.
