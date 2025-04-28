@@ -12,8 +12,8 @@ function setupCalculatorTabs() {
     
     // Log initial display values for debugging
     console.log('Initial display values:', 
-                'personalCalculator:', personalCalculator.style.display,
-                'websiteCalculator:', websiteCalculator.style.display);
+                'personalCalculator:', personalCalculator.className,
+                'websiteCalculator:', websiteCalculator.className);
     
     // Make sure all elements exist before adding event handlers
     if (personalTab && websiteTab && personalCalculator && websiteCalculator) {
@@ -21,13 +21,14 @@ function setupCalculatorTabs() {
         
         // Function to switch to personal calculator
         function showPersonalCalculator() {
-            // Show personal calculator, hide website calculator with direct style changes
-            personalCalculator.style.display = 'block';
-            websiteCalculator.style.display = 'none';
+            personalCalculator.classList.add('active');
+            personalCalculator.classList.remove('inactive');
+            websiteCalculator.classList.remove('active');
+            websiteCalculator.classList.add('inactive');
             
             console.log('Personal calculator activated:', 
-                        personalCalculator.style.display,
-                        websiteCalculator.style.display);
+                        personalCalculator.className,
+                        websiteCalculator.className);
             
             // Update tab styles
             personalTab.classList.add('border-b-2', 'border-primary', 'text-primary');
@@ -40,13 +41,14 @@ function setupCalculatorTabs() {
         
         // Function to switch to website calculator
         function showWebsiteCalculator() {
-            // Show website calculator, hide personal calculator with direct style changes
-            personalCalculator.style.display = 'none';
-            websiteCalculator.style.display = 'block';
+            personalCalculator.classList.remove('active');
+            personalCalculator.classList.add('inactive');
+            websiteCalculator.classList.add('active');
+            websiteCalculator.classList.remove('inactive');
             
             console.log('Website calculator activated:', 
-                        personalCalculator.style.display,
-                        websiteCalculator.style.display);
+                        personalCalculator.className,
+                        websiteCalculator.className);
             
             // Update tab styles
             websiteTab.classList.add('border-b-2', 'border-primary', 'text-primary');
@@ -57,7 +59,7 @@ function setupCalculatorTabs() {
             console.log('Switching to website calculator tab');
         }
         
-        // Tab switching event listeners with direct style manipulation
+        // Tab switching event listeners
         personalTab.addEventListener('click', function(e) {
             e.preventDefault();
             showPersonalCalculator();
@@ -80,10 +82,14 @@ function setupCalculatorTabs() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup the calculator tabs
+// Ensure the tab setup runs after DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupCalculatorTabs);
+} else {
     setupCalculatorTabs();
-    
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     // Get the website calculator form and results elements
     const websiteForm = document.getElementById('website-calculator-form');
     const websiteResults = document.getElementById('website-results');

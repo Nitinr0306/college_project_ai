@@ -81,28 +81,53 @@ def calculate_website():
             "error": str(e)
         }), 400
 
-@app.route('/chat', methods=['POST'])
+@app.route('/gemini-chat', methods=['POST'])
 def chat():
-    """API endpoint for chatbot interaction"""
+    print("==== /gemini-chat endpoint HIT ====")
     try:
         data = request.json
         user_message = data.get('message', '')
-        
+        logger.info(f"[CHATBOT] Incoming message: {user_message}")
+
         if not user_message:
+            logger.warning("[CHATBOT] No message provided by user.")
             return jsonify({
                 "success": False,
                 "error": "No message provided"
             }), 400
-        
-        # Get response from Ollama Llama2 model
-        response = get_chatbot_response(user_message)
-        
+
+        response = None
+        gemini_error = None
+        used_fallback = False
+        try:
+            from chatbot import get_gemini_response
+            response = get_gemini_response(user_message)
+            logger.info(f"[CHATBOT] Gemini response: {response}")
+        except Exception as e:
+            gemini_error = str(e)
+            logger.warning(f"[CHATBOT] Gemini API failed: {gemini_error}")
+            try:
+                from chatbot import get_chatbot_response
+                response = get_chatbot_response(user_message)
+                used_fallback = True
+                logger.info(f"[CHATBOT] Ollama fallback response: {response}")
+            except Exception as ollama_e:
+                logger.error(f"[CHATBOT] Ollama fallback failed: {str(ollama_e)}")
+                return jsonify({
+                    "success": False,
+                    "error": f"Gemini error: {gemini_error}. Ollama error: {str(ollama_e)}"
+                }), 500
+
+        final_response = response
+        if used_fallback:
+            final_response = f"[FALLBACK: Ollama] {response}"
+
         return jsonify({
             "success": True,
-            "response": response
+            "response": final_response
         })
     except Exception as e:
-        logger.error(f"Error in chatbot: {str(e)}")
+        logger.error(f"[CHATBOT] Error in chatbot endpoint: {str(e)}")
         return jsonify({
             "success": False,
             "error": str(e)
@@ -116,3 +141,7 @@ def page_not_found(e):
 @app.errorhandler(500)
 def server_error(e):
     return jsonify({"success": False, "error": "Server error occurred"}), 500
+
+if __name__ == '__main__':
+    # Run the Flask app
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)

@@ -16,16 +16,7 @@
                 <a href="#calculator" class="bg-white text-green-600 hover:bg-green-100 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
                     <i class="fas fa-calculator mr-2"></i>Calculate Now
                 </a>
-                <a href="#calculator" onclick="setTimeout(function() { 
-                    document.getElementById('website-calculator').classList.add('active'); 
-                    document.getElementById('personal-calculator').classList.add('inactive'); 
-                    document.getElementById('website-calculator').style.display='block'; 
-                    document.getElementById('personal-calculator').style.display='none'; 
-                    document.getElementById('website-tab').classList.add('border-b-2', 'border-primary', 'text-primary'); 
-                    document.getElementById('website-tab').classList.remove('text-gray-500'); 
-                    document.getElementById('personal-tab').classList.remove('border-b-2', 'border-primary', 'text-primary'); 
-                    document.getElementById('personal-tab').classList.add('text-gray-500');
-                }, 100);" class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
+                <a href="#calculator" class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
                     <i class="fas fa-globe mr-2"></i>Analyze Website
                 </a>
                 <a href="#chatbot" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
@@ -46,146 +37,144 @@
             <!-- Calculator Tabs -->
             <div class="max-w-4xl mx-auto mb-8">
                 <div class="flex border-b border-gray-200">
-                    <button id="personal-tab" class="py-2 px-4 font-medium bg-white border-b-2 border-primary text-primary" 
-                            onclick="document.getElementById('personal-calculator').style.display='block'; document.getElementById('website-calculator').style.display='none'; this.classList.add('border-b-2', 'border-primary', 'text-primary'); this.classList.remove('text-gray-500'); document.getElementById('website-tab').classList.remove('border-b-2', 'border-primary', 'text-primary'); document.getElementById('website-tab').classList.add('text-gray-500');">
+                    <button id="personal-tab" class="py-2 px-4 font-medium bg-white border-b-2 border-primary text-primary">
                         Personal Calculator
                     </button>
-                    <button id="website-tab" class="py-2 px-4 font-medium text-gray-500 hover:text-gray-700"
-                            onclick="document.getElementById('website-calculator').style.display='block'; document.getElementById('personal-calculator').style.display='none'; this.classList.add('border-b-2', 'border-primary', 'text-primary'); this.classList.remove('text-gray-500'); document.getElementById('personal-tab').classList.remove('border-b-2', 'border-primary', 'text-primary'); document.getElementById('personal-tab').classList.add('text-gray-500');">
+                    <button id="website-tab" class="py-2 px-4 font-medium text-gray-500 hover:text-gray-700">
                         Website Calculator
                     </button>
                 </div>
             </div>
-            
-            <!-- Personal Calculator Section -->
-            <div id="personal-calculator" class="max-w-4xl mx-auto">
 
-            <div class="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-lg overflow-hidden">
-                <div class="md:flex">
-                    <!-- Calculator Form -->
-                    <div class="md:w-1/2 p-6 md:p-8">
-                        <form id="carbon-calculator-form" class="space-y-4">
-                            <!-- Electricity Usage -->
-                            <div>
-                                <label for="electricity" class="block text-gray-700 font-medium mb-2">Monthly Electricity Usage (kWh)</label>
-                                <input type="number" id="electricity" name="electricity" min="0" placeholder="e.g., 250" 
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                            </div>
-                            
-                            <!-- Transportation -->
-                            <div>
-                                <label for="transport_type" class="block text-gray-700 font-medium mb-2">Primary Transportation Method</label>
-                                <select id="transport_type" name="transport_type" 
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                    <option value="">Select an option</option>
-                                    <option value="car">Car</option>
-                                    <option value="bus">Bus</option>
-                                    <option value="train">Train</option>
-                                    <option value="motorcycle">Motorcycle</option>
-                                    <option value="bicycle">Bicycle</option>
-                                    <option value="walking">Walking</option>
-                                    <option value="plane">Plane</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Distance -->
-                            <div>
-                                <label for="distance" class="block text-gray-700 font-medium mb-2">Weekly Distance Traveled (km)</label>
-                                <input type="number" id="distance" name="distance" min="0" placeholder="e.g., 100" 
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                            </div>
-                            
-                            <!-- Diet -->
-                            <div>
-                                <label for="diet" class="block text-gray-700 font-medium mb-2">Diet Preference</label>
-                                <select id="diet" name="diet" 
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                    <option value="">Select an option</option>
-                                    <option value="meat_heavy">Meat with every meal</option>
-                                    <option value="meat_medium">Meat a few times per week</option>
-                                    <option value="pescatarian">Pescatarian (fish, no meat)</option>
-                                    <option value="vegetarian">Vegetarian</option>
-                                    <option value="vegan">Vegan</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-md transition-colors shadow-md">
-                                    <i class="fas fa-calculator mr-2"></i>Calculate
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <!-- Results Section -->
-                    <div class="md:w-1/2 bg-gray-100 p-6 md:p-8">
-                        <div id="calculator-loader" class="hidden">
-                            <div class="flex justify-center items-center h-full">
-                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                            </div>
+            <!-- Personal Calculator Section -->
+            <div id="personal-calculator" class="max-w-4xl mx-auto" style="display: block;">
+                <div class="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-lg overflow-hidden">
+                    <div class="md:flex">
+                        <!-- Calculator Form -->
+                        <div class="md:w-1/2 p-6 md:p-8">
+                            <form id="carbon-calculator-form" class="space-y-4">
+                                <!-- Electricity Usage -->
+                                <div>
+                                    <label for="electricity" class="block text-gray-700 font-medium mb-2">Monthly Electricity Usage (kWh)</label>
+                                    <input type="number" id="electricity" name="electricity" min="0" placeholder="e.g., 250" 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                
+                                <!-- Transportation -->
+                                <div>
+                                    <label for="transport_type" class="block text-gray-700 font-medium mb-2">Primary Transportation Method</label>
+                                    <select id="transport_type" name="transport_type" 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select an option</option>
+                                        <option value="car">Car</option>
+                                        <option value="bus">Bus</option>
+                                        <option value="train">Train</option>
+                                        <option value="motorcycle">Motorcycle</option>
+                                        <option value="bicycle">Bicycle</option>
+                                        <option value="walking">Walking</option>
+                                        <option value="plane">Plane</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Distance -->
+                                <div>
+                                    <label for="distance" class="block text-gray-700 font-medium mb-2">Weekly Distance Traveled (km)</label>
+                                    <input type="number" id="distance" name="distance" min="0" placeholder="e.g., 100" 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                
+                                <!-- Diet -->
+                                <div>
+                                    <label for="diet" class="block text-gray-700 font-medium mb-2">Diet Preference</label>
+                                    <select id="diet" name="diet" 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select an option</option>
+                                        <option value="meat_heavy">Meat with every meal</option>
+                                        <option value="meat_medium">Meat a few times per week</option>
+                                        <option value="pescatarian">Pescatarian (fish, no meat)</option>
+                                        <option value="vegetarian">Vegetarian</option>
+                                        <option value="vegan">Vegan</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-md transition-colors shadow-md">
+                                        <i class="fas fa-calculator mr-2"></i>Calculate
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                         
-                        <div id="calculator-results" class="hidden">
-                            <h3 class="text-xl font-bold mb-4 text-gray-800">Your Carbon Footprint</h3>
-                            
-                            <div class="mb-6">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-gray-700 font-medium">Total Emissions:</span>
-                                    <span id="total-result" class="text-2xl font-bold text-primary-dark">0 kg CO2e</span>
-                                </div>
-                                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                    <div id="total-progress" class="h-full bg-primary" style="width: 0%"></div>
+                        <!-- Results Section -->
+                        <div class="md:w-1/2 bg-gray-100 p-6 md:p-8">
+                            <div id="calculator-loader" class="hidden">
+                                <div class="flex justify-center items-center h-full">
+                                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                                 </div>
                             </div>
                             
-                            <div class="space-y-4">
-                                <!-- Detailed results will be shown here -->
-                                <div class="bg-white rounded-md p-4 shadow-sm">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-700"><i class="fas fa-bolt text-yellow-500 mr-2"></i>Electricity</span>
-                                        <span id="electricity-result" class="font-semibold">0 kg CO2e</span>
+                            <div id="calculator-results" class="hidden">
+                                <h3 class="text-xl font-bold mb-4 text-gray-800">Your Carbon Footprint</h3>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-gray-700 font-medium">Total Emissions:</span>
+                                        <span id="total-result" class="text-2xl font-bold text-primary-dark">0 kg CO2e</span>
+                                    </div>
+                                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div id="total-progress" class="h-full bg-primary" style="width: 0%"></div>
                                     </div>
                                 </div>
                                 
-                                <div class="bg-white rounded-md p-4 shadow-sm">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-700"><i class="fas fa-car text-blue-500 mr-2"></i>Transportation</span>
-                                        <span id="transport-result" class="font-semibold">0 kg CO2e</span>
+                                <div class="space-y-4">
+                                    <!-- Detailed results will be shown here -->
+                                    <div class="bg-white rounded-md p-4 shadow-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-700"><i class="fas fa-bolt text-yellow-500 mr-2"></i>Electricity</span>
+                                            <span id="electricity-result" class="font-semibold">0 kg CO2e</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded-md p-4 shadow-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-700"><i class="fas fa-car text-blue-500 mr-2"></i>Transportation</span>
+                                            <span id="transport-result" class="font-semibold">0 kg CO2e</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded-md p-4 shadow-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-700"><i class="fas fa-utensils text-red-500 mr-2"></i>Diet</span>
+                                            <span id="diet-result" class="font-semibold">0 kg CO2e</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="bg-white rounded-md p-4 shadow-sm">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-700"><i class="fas fa-utensils text-red-500 mr-2"></i>Diet</span>
-                                        <span id="diet-result" class="font-semibold">0 kg CO2e</span>
-                                    </div>
+                                <!-- Chart for visualization -->
+                                <div class="mt-6">
+                                    <canvas id="footprint-chart" class="w-full"></canvas>
                                 </div>
                             </div>
                             
-                            <!-- Chart for visualization -->
-                            <div class="mt-6">
-                                <canvas id="footprint-chart" class="w-full"></canvas>
+                            <div id="calculator-empty" class="text-center py-10">
+                                <div class="text-gray-400 mb-4">
+                                    <i class="fas fa-chart-pie text-6xl"></i>
+                                </div>
+                                <h3 class="text-xl font-medium text-gray-600 mb-2">No Data Yet</h3>
+                                <p class="text-gray-500">Fill out the form to see your carbon footprint results</p>
                             </div>
-                        </div>
-                        
-                        <div id="calculator-empty" class="text-center py-10">
-                            <div class="text-gray-400 mb-4">
-                                <i class="fas fa-chart-pie text-6xl"></i>
-                            </div>
-                            <h3 class="text-xl font-medium text-gray-600 mb-2">No Data Yet</h3>
-                            <p class="text-gray-500">Fill out the form to see your carbon footprint results</p>
-                        </div>
-                        
-                        <div id="calculator-error" class="hidden bg-red-50 text-red-600 p-4 rounded-md">
-                            <div class="flex items-center">
-                                <i class="fas fa-exclamation-circle mr-2"></i>
-                                <span id="error-message">An error occurred. Please try again.</span>
+                            
+                            <div id="calculator-error" class="hidden bg-red-50 text-red-600 p-4 rounded-md">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                    <span id="error-message">An error occurred. Please try again.</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Website Calculator Section -->
             <div id="website-calculator" class="max-w-4xl mx-auto" style="display: none;">
                 <div class="bg-gray-50 rounded-lg shadow-lg overflow-hidden">
