@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTracker - Carbon Footprint Calculator & Sustainability Assistant</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="static/css/styles.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #personal-calculator { display: block !important; }
+        #website-calculator { display: none !important; }
+        #website-calculator.active { display: block !important; }
+        #personal-calculator.inactive { display: none !important; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { light: '#4ADE80', DEFAULT: '#22C55E', dark: '#16A34A' },
+                        secondary: { light: '#93C5FD', DEFAULT: '#3B82F6', dark: '#2563EB' },
+                        neutral: { light: '#F3F4F6', DEFAULT: '#E5E7EB', dark: '#4B5563' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <header class="bg-primary shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-leaf text-white text-2xl mr-3"></i>
+                <h1 class="text-white text-xl md:text-2xl font-bold">EcoTracker</h1>
+            </div>
+            <nav class="hidden md:block">
+                <ul class="flex space-x-6 text-white">
+                    <li><a href="#calculator" class="hover:text-green-200 transition-colors">Calculators</a></li>
+                    <li><a href="#chatbot" class="hover:text-green-200 transition-colors">Eco-Assistant</a></li>
+                    <li><a href="#about" class="hover:text-green-200 transition-colors">About</a></li>
+                </ul>
+            </nav>
+            <button class="md:hidden text-white" id="mobile-menu-button">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden bg-primary-dark md:hidden">
+            <ul class="px-4 py-2 space-y-2 text-white">
+                <li><a href="#calculator" class="block py-2 hover:text-green-200 transition-colors">Calculators</a></li>
+                <li><a href="#chatbot" class="block py-2 hover:text-green-200 transition-colors">Eco-Assistant</a></li>
+                <li><a href="#about" class="block py-2 hover:text-green-200 transition-colors">About</a></li>
+            </ul>
+        </div>
+    </header>
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-green-500 to-blue-500 text-white py-16 animate-fade-in">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Track Your Environmental Impact</h1>
+                <p class="text-xl md:text-2xl mb-6">Calculate carbon footprints for individuals and websites</p>
+                <p class="text-lg md:text-xl mb-8">Get personalized sustainability advice from our eco-assistant</p>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <a href="#calculator" class="bg-white text-green-600 hover:bg-green-100 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
+                        <i class="fas fa-calculator mr-2"></i>Calculate Now
+                    </a>
+                    <a href="#calculator" class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
+                        <i class="fas fa-globe mr-2"></i>Analyze Website
+                    </a>
+                    <a href="#chatbot" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-md">
+                        <i class="fas fa-robot mr-2"></i>Ask Eco-Assistant
+                    </a>
+                </div>
+            </div>
+        </section>
+        <!-- Carbon Calculator Section -->
+        <section id="calculator" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4 text-gray-800">Carbon Footprint Calculators</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Measure your environmental impact with our comprehensive tools.</p>
+                </div>
+                <!-- Calculator Tabs -->
+                <div class="max-w-4xl mx-auto mb-8">
+                    <div class="flex border-b border-gray-200">
+                        <button id="personal-tab" class="py-2 px-4 font-medium bg-white border-b-2 border-primary text-primary">Personal Calculator</button>
+                        <button id="website-tab" class="py-2 px-4 font-medium text-gray-500 hover:text-gray-700">Website Calculator</button>
+                    </div>
+                </div>
+                <!-- Personal Calculator Section -->
+                <div id="personal-calculator" class="max-w-4xl mx-auto" style="display: block;">
+                    <div class="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-lg overflow-hidden">
+                        <div class="md:flex">
+                            <!-- Calculator Form -->
+                            <div class="md:w-1/2 p-6 md:p-8">
+                                <form id="carbon-calculator-form" class="space-y-4">
+                                    <!-- Electricity Usage -->
+                                    <div>
+                                        <label for="electricity" class="block text-gray-700 font-medium mb-2">Monthly Electricity Usage (kWh)</label>
+                                        <input type="number" id="electricity" name="electricity" min="0" placeholder="e.g., 250" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <!-- Transportation -->
+                                    <div>
+                                        <label for="transport_type" class="block text-gray-700 font-medium mb-2">Primary Transportation Method</label>
+                                        <select id="transport_type" name="transport_type" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <option value="car">Car</option>
+                                            <option value="bus">Bus</option>
+                                            <option value="train">Train</option>
+                                            <option value="bike">Bike</option>
+                                            <option value="walk">Walk</option>
+                                            <option value="plane">Plane</option>
+                                        </select>
+                                    </div>
+                                    <!-- Distance -->
+                                    <div>
+                                        <label for="distance" class="block text-gray-700 font-medium mb-2">Weekly Distance Traveled (km)</label>
+                                        <input type="number" id="distance" name="distance" min="0" placeholder="e.g., 50" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <!-- Diet -->
+                                    <div>
+                                        <label for="diet" class="block text-gray-700 font-medium mb-2">Diet Preference</label>
+                                        <select id="diet" name="diet" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <option value="omnivore">Omnivore</option>
+                                            <option value="vegetarian">Vegetarian</option>
+                                            <option value="vegan">Vegan</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold transition-colors">
+                                            <i class="fas fa-calculator mr-2"></i>Calculate
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- Results Section -->
+                            <div class="md:w-1/2 bg-gray-100 p-6 md:p-8">
+                                <div id="calculator-loader" class="hidden">
+                                    <div class="flex justify-center items-center h-full">
+                                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                    </div>
+                                </div>
+                                <div id="calculator-results" class="hidden">
+                                    <h3 class="text-xl font-bold mb-4 text-gray-800">Your Carbon Footprint</h3>
+                                    <div class="mb-4">
+                                        <canvas id="carbonChart" width="300" height="150"></canvas>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="flex items-center mb-2">
+                                            <span class="text-gray-700 mr-2">Total CO₂:</span>
+                                            <span id="total-co2" class="font-bold text-primary text-lg">0</span> kg/week
+                                        </div>
+                                        <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                                            <div id="total-progress" class="h-full bg-primary" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div id="advice" class="text-gray-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Website Calculator Section -->
+                <div id="website-calculator" class="max-w-4xl mx-auto" style="display: none;">
+                    <div class="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-lg overflow-hidden">
+                        <div class="p-6 md:p-8">
+                            <form id="website-calculator-form" class="space-y-4">
+                                <div>
+                                    <label for="website-url" class="block text-gray-700 font-medium mb-2">Website URL</label>
+                                    <input type="url" id="website-url" name="website-url" placeholder="e.g., https://example.com" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label for="monthly-visits" class="block text-gray-700 font-medium mb-2">Monthly Visits</label>
+                                    <input type="number" id="monthly-visits" name="monthly-visits" min="0" placeholder="e.g., 10000" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold transition-colors">
+                                        <i class="fas fa-globe mr-2"></i>Analyze
+                                    </button>
+                                </div>
+                            </form>
+                            <div id="website-results" class="hidden mt-6">
+                                <h3 class="text-xl font-bold mb-4 text-gray-800">Website Carbon Footprint</h3>
+                                <div class="mb-4">
+                                    <span class="text-gray-700 mr-2">Estimated CO₂ per visit:</span>
+                                    <span id="website-co2" class="font-bold text-primary text-lg">0</span> g
+                                </div>
+                                <div class="mb-4">
+                                    <span class="text-gray-700 mr-2">Total CO₂ per month:</span>
+                                    <span id="website-total-co2" class="font-bold text-primary text-lg">0</span> kg
+                                </div>
+                                <div id="website-advice" class="text-gray-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Chatbot Section -->
+        <section id="chatbot" class="py-16 bg-gradient-to-r from-green-100 to-blue-100">
+            <div class="container mx-auto px-4">
+                <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Eco-Assistant</h2>
+                        <p class="text-gray-600 mb-6">Ask any sustainability question and get instant, science-backed answers from our AI-powered chatbot.</p>
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-inner mb-4" id="chat-window" style="height: 300px; overflow-y: auto;"></div>
+                        <form id="chat-form" class="flex">
+                            <input type="text" id="chat-input" placeholder="Type your question..." class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-r-md transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                        <div id="chat-status" class="text-sm text-gray-500 mt-2 hidden">
+                            <div class="flex items-center">
+                                <div class="animate-pulse mr-2">
+                                    <i class="fas fa-circle text-primary text-xs"></i>
+                                </div>
+                                <span>Eco-Assistant is thinking...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- About Section -->
+        <section id="about" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4 text-gray-800">About EcoTracker</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Our mission is to help individuals understand and reduce their environmental impact through education and practical tools.</p>
+                </div>
+                <div class="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+                    <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                        <div class="text-primary text-4xl mb-4"><i class="fas fa-leaf"></i></div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Sustainability Focused</h3>
+                        <p class="text-gray-600">We provide tools and information to help you make environmentally conscious decisions in your daily life.</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                        <div class="text-primary text-4xl mb-4"><i class="fas fa-chart-line"></i></div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Data-Driven Insights</h3>
+                        <p class="text-gray-600">Our calculators use scientific conversion factors to provide accurate estimates of your carbon footprint.</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                        <div class="text-primary text-4xl mb-4"><i class="fas fa-globe"></i></div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Website Analysis</h3>
+                        <p class="text-gray-600">Our website carbon calculator analyzes the environmental impact of any website based on its size and traffic.</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                        <div class="text-primary text-4xl mb-4"><i class="fas fa-robot"></i></div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">AI-Powered Assistance</h3>
+                        <p class="text-gray-600">Get personalized advice and answers to your sustainability questions from our eco-friendly chatbot.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="flex items-center">
+                        <i class="fas fa-leaf text-primary-light mr-2"></i>
+                        <span class="font-bold">EcoTracker</span> - Making sustainability measurable
+                    </p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="hover:text-primary-light transition-colors"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            <div class="mt-4 text-center text-sm text-gray-400">
+                <p>© 2023 EcoTracker. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- JavaScript -->
+    <script src="static/js/animations.js"></script>
+    <script src="static/js/calculator.js"></script>
+    <script src="static/js/website-calculator.js"></script>
+    <script src="static/js/chatbot.js"></script>
+</body>
+</html>
